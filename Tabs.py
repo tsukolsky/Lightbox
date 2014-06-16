@@ -1,14 +1,31 @@
-from PyQt4.QtGui import QWidget, QPushButton, QVBoxLayout, QHBoxLayout
+from PyQt4.QtGui import QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QIcon
 import time
 from util.event import Event
 from util.Log import Log
 
 class StrobeBrowserTab(QWidget):
-    def __init__(self):
-        print "Making TAB!"
-        self.Log = Log()
+    def __init__(self, log):
+        self.__log = log
+        self.__logTitle = "StrobeBrowserTab"
+        
         QWidget.__init__(self)
         self.__mainLayout = QVBoxLayout(self)
+        currentSelectionLayout = QHBoxLayout()
+        currentSelectionLayout.addStretch(1)
+        
+        # make start Button
+        startButton = QPushButton("Start")
+        icon = QIcon("icons/Start.png")
+        startButton.setIcon(icon)
+        startButton.clicked.connect(self.__handleStart)
+        currentSelectionLayout.addWidget(startButton)
+        
+        # make Stop Button
+        stopButton = QPushButton("Stop")
+        stopIcon = QIcon("icons/Stop.png")
+        stopButton.setIcon(stopIcon)
+        stopButton.clicked.connect(self.__handleStop)
+        currentSelectionLayout.addWidget(stopButton)
         
         # Make simple button layout
         row1Layout = QHBoxLayout()
@@ -49,6 +66,7 @@ class StrobeBrowserTab(QWidget):
         row4Layout.addWidget(strobeElevenButton)
         row4Layout.addWidget(strobeTwelveButton)
         
+        self.__mainLayout.addLayout(currentSelectionLayout)
         self.__mainLayout.addLayout(row1Layout)
         self.__mainLayout.addLayout(row2Layout)
         self.__mainLayout.addLayout(row3Layout)
@@ -57,6 +75,15 @@ class StrobeBrowserTab(QWidget):
         self.ButtonClicked = Event()
         
         self.ButtonClicked.subscribe(self.__HandleButtonClicked)
+     
+    def __Log(self,message):
+        self.__log.LOG(self.__logTitle,message)
+           
+    def __handleStart(self):
+        self.__Log("Start")
+        
+    def __handleStop(self):
+        self.__Log("Stop")
         
     def __handleStrobeOneClicked(self):
         print "StOBE 1"

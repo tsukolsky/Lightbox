@@ -3,18 +3,23 @@ from PyQt4.QtCore import Qt
 import sys
 from PyQt4.QtGui import QApplication
 from Tabs import StrobeBrowserTab
+from util.Log import Log
 
 class MainWindow(QMainWindow):
     FILE_MENU = "&File"
     EXIT_MENU = "E&xit"
     
     ## __init__ ---------------------------------------------------------
-    def __init__(self):
+    def __init__(self, Log = None):
         # Make Main window
         QMainWindow.__init__(self, None)
         self.setWindowTitle("Lightbox")
         self.resize(520, 300);
-
+        self.__log = Log
+        if self.__log == None:
+            print "No Log File"
+            self.close()
+            
         # Create main layout for window
         mainWidget = QWidget(self)
         mainLayout = QVBoxLayout(mainWidget)
@@ -25,7 +30,7 @@ class MainWindow(QMainWindow):
         
         # Add Tabs
         self.__tabs = QTabWidget()
-        self.__BrowserTab = StrobeBrowserTab() 
+        self.__BrowserTab = StrobeBrowserTab(self.__log) 
         self.__tabs.addTab(self.__BrowserTab, "Stobe Patterns")  
         mainLayout.addWidget(self.__tabs)
         
