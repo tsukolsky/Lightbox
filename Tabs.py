@@ -1,7 +1,11 @@
-from PyQt4.QtGui import QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QIcon
+from PyQt4.QtGui import QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QIcon, QFont
 import time
 from util.event import Event
 from util.Log import Log
+
+BUTTONS_PER_ROW = 4
+MIN_BUTTON_HEIGHT = 100
+MIN_BUTTON_WIDTH = 100
 
 class StrobeBrowserTab(QWidget):
     def __init__(self, log):
@@ -10,84 +14,65 @@ class StrobeBrowserTab(QWidget):
         
         QWidget.__init__(self)
         self.__mainLayout = QVBoxLayout(self)
-        currentSelectionLayout = QHBoxLayout()
-        currentSelectionLayout.addStretch(1)
-        
-        # make start Button
-        startButton = QPushButton("Start")
-        icon = QIcon("icons/Start.png")
-        startButton.setIcon(icon)
-        startButton.clicked.connect(self.__handleStart)
-        currentSelectionLayout.addWidget(startButton)
-        
-        # make Stop Button
-        stopButton = QPushButton("Stop")
-        stopIcon = QIcon("icons/Stop.png")
-        stopButton.setIcon(stopIcon)
-        stopButton.clicked.connect(self.__handleStop)
-        currentSelectionLayout.addWidget(stopButton)
-        
-        # Make simple button layout
-        row1Layout = QHBoxLayout()
-        row2Layout = QHBoxLayout()
-        row3Layout = QHBoxLayout()
-        row4Layout = QHBoxLayout()
-        
-        ## hate this, disgusting. What happens when we add?
-        # Must be generic, event handler
-        strobeOneButton = QPushButton("Strobe 1")
-        strobeTwoButton = QPushButton("Strobe 2")
-        strobeThreeButton = QPushButton("Strobe 3")
-        strobeFourButton = QPushButton("Strobe 4")
-        strobeFiveButton = QPushButton("Strobe 5")
-        strobeSixButton = QPushButton("Strobe 6")
-        strobeSevenButton =  QPushButton("Strobe 7")
-        strobeEightButton = QPushButton("Strobe 8")
-        strobeNineButton = QPushButton("Strobe 9")
-        strobeTenButton = QPushButton("Strobe 10")
-        strobeElevenButton = QPushButton("Strobe 11")
-        strobeTwelveButton = QPushButton("Strobe 12")
-        
-        strobeOneButton.clicked.connect(self.__handleStrobeOneClicked)
-        
-        row1Layout.addWidget(strobeOneButton)
-        row1Layout.addWidget(strobeTwoButton)
-        row1Layout.addWidget(strobeThreeButton)
 
-        row2Layout.addWidget(strobeFourButton)
-        row2Layout.addWidget(strobeFiveButton)
-        row2Layout.addWidget(strobeSixButton)
+        # Patterns        
+        self.__patternPresets = list() 
+        self.__patternLayouts = list()
         
-        row3Layout.addWidget(strobeSevenButton)
-        row3Layout.addWidget(strobeEightButton)
-        row3Layout.addWidget(strobeNineButton)
-        
-        row4Layout.addWidget(strobeTenButton)
-        row4Layout.addWidget(strobeElevenButton)
-        row4Layout.addWidget(strobeTwelveButton)
-        
-        self.__mainLayout.addLayout(currentSelectionLayout)
-        self.__mainLayout.addLayout(row1Layout)
-        self.__mainLayout.addLayout(row2Layout)
-        self.__mainLayout.addLayout(row3Layout)
-        self.__mainLayout.addLayout(row4Layout)
-        
-        self.ButtonClicked = Event()
-        
-        self.ButtonClicked.subscribe(self.__HandleButtonClicked)
+        for x in range(0,12):
+            self.__addButton(False)
+            
+        self.__redrawLayout()    
+        #self.ButtonClicked = Event()
+        #self.ButtonClicked.subscribe(self.__HandleButtonClicked)
      
     def __Log(self,message):
         self.__log.LOG(self.__logTitle,message)
            
-    def __handleStart(self):
-        self.__Log("Start")
-        
-    def __handleStop(self):
-        self.__Log("Stop")
-        
     def __handleStrobeOneClicked(self):
         print "StOBE 1"
         
     def __HandleButtonClicked(self):
         print "Button Clicked"
+        
+    def __addButton(self, redrawLayout = False):
+        buttonNumber = len(self.__patternPresets) + 1
+        print "New button, already have %d"%buttonNumber
+        buttonTag = "Pattern %d"%buttonNumber
+        newButton = QPushButton(buttonTag)
+        newButton.setMinimumSize(MIN_BUTTON_WIDTH,MIN_BUTTON_HEIGHT)
+        font = QFont(newButton.font())
+        font.setPointSize(24)
+        newButton.setFont(font)
+        newButton.clicked.connect(lambda: self.__patternPressed(buttonTag))
+        temp = [buttonTag, newButton]
+        self.__patternPresets.append(temp)
+        if redrawLayout:
+            self.__redrawLayout()
+        
+    def __redrawLayout(self):
+        self.__Log("Redrawing Buttons")
+        numOfButtons = len(self.__patternPresets)
+        numOfRows = numOfButtons/BUTTONS_PER_ROW
+        print numOfRows
+        for i in range(0,numOfRows):
+            newRow = QHBoxLayout()
+            for j in range(0,BUTTONS_PER_ROW):
+                newRow.addWidget(self.__patternPresets[i*BUTTONS_PER_ROW+j][1])
+            self.__patternLayouts += [newRow]
+            self.__mainLayout.addLayout(newRow)    
+            
+        
+    def __patternPressed(self,buttonTag):
+        self.__Log("Pattern \'%s\' pressed"%buttonTag)
+        self.__selectedPattern = buttonTag
+        
+        
+        
+        
+        
+        
+        
+        
+        
         
