@@ -52,8 +52,15 @@ class StrobeBrowserTab(QWidget):
             self.__redrawLayout()
     
     def __clearLayout(self, layout):
-        for i in reversed(range(layout.count())): 
-            layout.itemAt(i).widget().deleteLater()
+        if layout is not None:
+            print type(layout)
+            while layout.count():
+                item = layout.takeAt(0)
+                widget = item.widget()
+                if widget is not None:
+                    widget.hide()
+                else:
+                    self.__clearLayout(item.layout())
             
     def __redrawLayout(self):
         self.__clearLayout(self.__buttonLayout)
@@ -61,11 +68,22 @@ class StrobeBrowserTab(QWidget):
         self.__Log("Redrawing Buttons")
         numOfButtons = len(self.__patternPresets)
         numOfRows = numOfButtons/BUTTONS_PER_ROW
-
+        if numOfButtons%BUTTONS_PER_ROW != 0:
+            numOfRows += 1
+            
+        print numOfButtons,numOfRows
+        
         for i in range(0,numOfRows):
+            print "New Row"
             newRow = QHBoxLayout()
-            for j in range(0,BUTTONS_PER_ROW):
+            buttonsLeft = numOfButtons - i*BUTTONS_PER_ROW
+            buttonsInRow = BUTTONS_PER_ROW
+            if buttonsLeft < BUTTONS_PER_ROW:
+                buttonsInRow = buttonsLeft
+            for j in range(0,buttonsInRow):
+                print "Adding Widget"
                 newRow.addWidget(self.__patternPresets[i*BUTTONS_PER_ROW+j][1])
+            print "Adding Row"
             self.__buttonLayout.addLayout(newRow)
         
         self.__mainLayout.addLayout(self.__buttonLayout)  
