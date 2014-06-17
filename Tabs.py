@@ -19,8 +19,9 @@ class StrobeBrowserTab(QWidget):
         self.__patternPresets = list() 
         self.__patternLayouts = list()
         
+        self.__buttonLayout = QVBoxLayout()
         for x in range(0,12):
-            self.__addButton(False)
+            self.AddButton(False)
             
         self.__redrawLayout()    
         #self.ButtonClicked = Event()
@@ -35,7 +36,7 @@ class StrobeBrowserTab(QWidget):
     def __HandleButtonClicked(self):
         print "Button Clicked"
         
-    def __addButton(self, redrawLayout = False):
+    def AddButton(self, redrawLayout = False):
         buttonNumber = len(self.__patternPresets) + 1
         print "New button, already have %d"%buttonNumber
         buttonTag = "Pattern %d"%buttonNumber
@@ -49,18 +50,25 @@ class StrobeBrowserTab(QWidget):
         self.__patternPresets.append(temp)
         if redrawLayout:
             self.__redrawLayout()
-        
+    
+    def __clearLayout(self, layout):
+        for i in reversed(range(layout.count())): 
+            layout.itemAt(i).widget().deleteLater()
+            
     def __redrawLayout(self):
+        self.__clearLayout(self.__buttonLayout)
+        self.__buttonLayout = QVBoxLayout()
         self.__Log("Redrawing Buttons")
         numOfButtons = len(self.__patternPresets)
         numOfRows = numOfButtons/BUTTONS_PER_ROW
-        print numOfRows
+
         for i in range(0,numOfRows):
             newRow = QHBoxLayout()
             for j in range(0,BUTTONS_PER_ROW):
                 newRow.addWidget(self.__patternPresets[i*BUTTONS_PER_ROW+j][1])
-            self.__patternLayouts += [newRow]
-            self.__mainLayout.addLayout(newRow)    
+            self.__buttonLayout.addLayout(newRow)
+        
+        self.__mainLayout.addLayout(self.__buttonLayout)  
             
         
     def __patternPressed(self,buttonTag):

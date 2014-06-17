@@ -1,5 +1,7 @@
 from PyQt4.QtGui import QMainWindow, QWidget, QHBoxLayout, QPushButton, QTabBar, \
-                        QTabWidget, QVBoxLayout, QMenuBar, QAction, QIcon, QLabel, QFont
+                        QTabWidget, QVBoxLayout, QMenuBar, QAction, QIcon, QLabel, QFont, \
+                        QMessageBox
+                        
 from PyQt4.QtCore import Qt
 import sys
 from PyQt4.QtGui import QApplication
@@ -12,6 +14,10 @@ MIN_BUTTON_WIDTH = 100
 class MainWindow(QMainWindow):
     FILE_MENU = "&File"
     EXIT_MENU = "E&xit"
+    ADD_MENU = "Add &Pattern"
+    DELETE_MENU = "&Delete"
+    VERSION_MENU = "&Version"
+    ABOUT_MENU = "&About"
     
     ## __init__ ---------------------------------------------------------
     def __init__(self, Log = None):
@@ -80,12 +86,43 @@ class MainWindow(QMainWindow):
     def __createMenu(self):
         menu = self.menuBar()
         
+        ## File Menu -----------------------------------------
         fileMenu = menu.addMenu(MainWindow.FILE_MENU)
+        
+        newPatternAction = QAction(menu)
+        newPatternAction.setText(MainWindow.ADD_MENU)
+        newPatternAction.triggered.connect(self.__addPattern)
+        
+        deletePatternAction = QAction(menu)
+        deletePatternAction.setText(MainWindow.DELETE_MENU)
+        deletePatternAction.triggered.connect(self.__deletePattern)
         
         exitAction = QAction(menu)
         exitAction.setText(MainWindow.EXIT_MENU)
         exitAction.triggered.connect(self.__exit)
+        
+        fileMenu.addAction(newPatternAction)
+        fileMenu.addAction(deletePatternAction)
         fileMenu.addAction(exitAction)
+        
+        ## About Menu ----------------------------------------
+        aboutMenu = menu.addMenu(MainWindow.ABOUT_MENU)
+        
+        versionAction = QAction(menu)
+        versionAction.setText(MainWindow.VERSION_MENU)
+        versionAction.triggered.connect(self.__showAbout)
+        
+        aboutMenu.addAction(versionAction)
+        
+    def __showAbout(self):
+        ret = QMessageBox.information(self,"Version Info", "Release: July 10, 2014")
+        
+    def __addPattern(self):
+        self.__Log("Add Pattern")
+        self.__BrowserTab.AddButton(True)
+        
+    def __deletePattern(self):
+        self.__Log("Delete Pattern")
         
     def __handleStart(self):
         self.__Log("START")
