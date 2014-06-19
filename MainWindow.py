@@ -5,9 +5,11 @@ from PyQt4.QtGui import QMainWindow, QWidget, QHBoxLayout, QPushButton, QTabBar,
 from PyQt4.QtCore import Qt
 import sys
 from PyQt4.QtGui import QApplication
-from Tabs import StrobeBrowserTab
 from util.Log import Log
+from util.Settings import *
+from Pattern import Pattern
 
+BUTTONS_PER_ROW = 4
 MIN_BUTTON_HEIGHT = 100
 MIN_BUTTON_WIDTH = 100
 
@@ -33,16 +35,16 @@ class MainWindow(QMainWindow):
             
         # Create main layout for window
         mainWidget = QWidget(self)
-        mainLayout = QVBoxLayout(mainWidget)
-        mainWidget.setLayout(mainLayout)
+        self.__mainLayout = QVBoxLayout(mainWidget)
+        mainWidget.setLayout(self.__mainLayout)
       
         # Add Menu Bard
         self.__menu = self.__createMenu()
         
         # Add Tabs
-        self.__tabs = QTabWidget()
-        self.__BrowserTab = StrobeBrowserTab(self.__log) 
-        self.__tabs.addTab(self.__BrowserTab, "Stobe Patterns")  
+        #self.__tabs = QTabWidget()
+        #self.__BrowserTab = StrobeBrowserTab(self.__log) 
+        #self.__tabs.addTab(self.__BrowserTab, "Stobe Patterns")  
         
         ## Toolbar that is always there->Selected Pattern, Start, Stop, Current State Label
         self.__currentPatternLabel = QLabel("No Pattern Selected")
@@ -72,8 +74,14 @@ class MainWindow(QMainWindow):
         currentSelectionLayout.addWidget(self.StopButton)
         currentSelectionLayout.addStretch(1) 
         
-        mainLayout.addLayout(currentSelectionLayout)
-        mainLayout.addWidget(self.__tabs)
+        self.__mainLayout.addLayout(currentSelectionLayout)
+       # mainLayout.addWidget(self.__tabs)
+        
+        self.__patterns = list()
+        self.__buttons = list()
+        
+        self.__defaultButtonLayout = QVBoxLayout()
+        self.__makeDefaultButtons()
         
         # Make the window knwo what is the main widget
         self.setCentralWidget(mainWidget)
@@ -116,10 +124,89 @@ class MainWindow(QMainWindow):
         
     def __showAbout(self):
         ret = QMessageBox.information(self,"Version Info", "Release: July 10, 2014")
+    
+    def __makeDefaultButtons(self):
+       for iter in range(0,NUM_DEFAULT_PATTERNS):
+           self.__Log("Making preset %d"%iter)
+           pattern_params = DEFAULT_PATTERNS[iter]
+           name = pattern_params[pIndex.Name]
+           des = pattern_params[pIndex.Description] 
+           default = pattern_params[pIndex.Default]
+           clist = pattern_params[pIndex.ColorList]
+           reqColors = pattern_params[pIndex.RequiredColors]
+           pwm = pattern_params[pIndex.PWM]
+           newPattern = Pattern(name, des, default,clist, reqColors, pwm)
+           self.__patterns += [newPattern]
+       
+       self.__redrawButtons()
+    
+    def __clearLayout(self, layout):
+        if layout is not None:
+            while layout.count():
+                item = layout.takeAt(0)
+                widget = item.widget()
+                if widget is not None:
+                    widget.hide()
+                else:
+                    self.__clearLayout(item.layout())
+            
+    def __redrawButtons(self):
+        self.__clearLayout(self.__defaultButtonLayout)
+        self.__defaultButtonLayout = QVBoxLayout()
+        self.__buttons = list()
+        
+        self.__Log("Redrawing Buttons")
+        numOfButtons = len(self.__patterns)
+        numOfRows = numOfButtons/BUTTONS_PER_ROW
+        if numOfButtons%BUTTONS_PER_ROW != 0:
+            numOfRows += 1
+        self.__Log("Buttons: %d, Rows: %d"%(numOfButtons, numOfRows))
+        for i in range(0,numOfRows):
+            self.__Log("Row %d"%i)
+            newRow = QHBoxLayout()
+            buttonsLeft = numOfButtons - i*BUTTONS_PER_ROW
+            buttonsInRow = BUTTONS_PER_ROW
+            if buttonsLeft < BUTTONS_PER_ROW:
+                buttonsInRow = buttonsLeft
+            for j in range(0,buttonsInRow):
+                patternId = i*BUTTONS_PER_ROW + j
+                print "Pattern ID %d"%patternId
+                pattern = self.__patterns[patternId]
+                name = pattern.GetName()
+                print "Name %s"%name
+                newButton = QPushButton(name)
+                newButton.setMinimumSize(MIN_BUTTON_WIDTH,MIN_BUTTON_HEIGHT)
+                font = QFont(newButton.font())
+                font.setPointSize(24)
+                newButton.setFont(font)
+                self.__buttons.append(newButton)
+                #newButton.clicked.connect(lambda: self.__patternPressed(sel)
+                newRow.addWidget(newButton)
+            print "Adding Row"
+            self.__defaultButtonLayout.addLayout(newRow)
+        
+        for j in range(0,len(self.__buttons)):
+            #tmpButton = self.__buttons[j]
+            print "Setting tag to %d"%j
+            self.__buttons[j].clicked.connect(lambda: self.__patternPressed(j))
+            
+        self.__mainLayout.addLayout(self.__defaultButtonLayout)  
+            
+        
+    def __patternPressed(self,buttonTag):
+        self.__Log("Pattern \'%d\' pressed"%buttonTag)
+        self.__selectedPattern = buttonTag
         
     def __addPattern(self):
         self.__Log("Add Pattern")
-        self.__BrowserTab.AddButton(True)
+        newPattern = Pattern()
+        newDescription = "Pattern %d"%(len(self.__patterns))
+        self.__Log("New description %s"%newDescription)
+        copyPattern = self.__patterns[0]
+        newPattern = copyPattern.CopyPattern(newDescription)
+        print newPattern.GetName()
+        self.__patterns += [newPattern]
+        self.__redrawButtons()
         
     def __deletePattern(self):
         self.__Log("Delete Pattern")
