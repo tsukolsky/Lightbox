@@ -10,11 +10,13 @@ from util.Settings import *
 from util.MyPushButton import MyPushButton
 from Pattern import Pattern
 
-BUTTONS_PER_ROW = 3
-MIN_BUTTON_HEIGHT = 100
-MIN_BUTTON_WIDTH = 250
-STST_BUTTON_HEIGHT = 80
-STST_BUTTON_WIDTH = 140
+BUTTONS_PER_ROW = 4
+BUTTON_FONT_SIZE = 14
+MIN_BUTTON_HEIGHT = 50
+MIN_BUTTON_WIDTH = 100
+STST_BUTTON_HEIGHT = 50
+STST_BUTTON_WIDTH = 80
+WATERMARK_DIM = 80
 ADD_PATTERN_ENABLED = False
 PATTERN_PREAMBLE = "Selected Pattern: "
 NO_PATTERN_SELECTED = "None Selected"
@@ -32,7 +34,7 @@ class MainWindow(QMainWindow):
         # Make Main window
         QMainWindow.__init__(self, None)
         self.setWindowTitle("Lightbox")
-        self.resize(800, 480)       # Screen Size
+        self.resize(800, 440)       # Screen Size
         self.__log = Log
         self.__logTitle = "MainWindow"
         if self.__log == None:
@@ -207,7 +209,7 @@ class MainWindow(QMainWindow):
                 newButton = MyPushButton(self,name)
                 newButton.setMinimumSize(MIN_BUTTON_WIDTH,MIN_BUTTON_HEIGHT)
                 font = QFont(newButton.font())
-                font.setPointSize(24)
+                font.setPointSize(BUTTON_FONT_SIZE)
                 newButton.setFont(font)
                 self.__buttons.append(newButton)
                 newButtonLayout = QVBoxLayout()
