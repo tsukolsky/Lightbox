@@ -7,7 +7,8 @@ import sys
 from PyQt4.QtGui import QApplication
 from util.Log import Log
 from util.Settings import *
-from util.MyPushButton import MyPushButton
+from util.MyPushButton import TagPushButton, IDPushButton
+from ColorChooser import ColorChooser
 from Pattern import Pattern
 
 BUTTONS_PER_ROW = 4
@@ -18,8 +19,8 @@ STST_BUTTON_HEIGHT = 50
 STST_BUTTON_WIDTH = 80
 WATERMARK_DIM = 80
 ADD_PATTERN_ENABLED = False
-PATTERN_PREAMBLE = "Selected Pattern: "
-NO_PATTERN_SELECTED = "None Selected"
+PATTERN_PREAMBLE = "Running Pattern: "
+NO_PATTERN_SELECTED = "None"
 PATTERN_EDIT_MODE = "EDIT"
 PATTERN_SELECT_MODE = "SELECT"
 
@@ -48,6 +49,9 @@ class MainWindow(QMainWindow):
         self.__mainLayout = QVBoxLayout(mainWidget)
         mainWidget.setLayout(self.__mainLayout)
       
+        # Selected pattern
+        self.__selectedPattern = None
+        
         # Add Menu Bard
         self.__menu = self.__createMenu()
 
@@ -65,9 +69,12 @@ class MainWindow(QMainWindow):
         self.__selectedPatternLayout = QVBoxLayout()
         self.__makeDefaultButtons()
         
-        # Connect MyPushButton signals
-        self.connect(self, SIGNAL("buttonXClicked(PyQt_PyObject)"), self.__buttonXClicked)
-
+        # Connect TagPushButton signals
+        self.connect(self, SIGNAL("tagPushButtonClicked(PyQt_PyObject)"), self.__buttonXClicked)
+        self.connect(self,SIGNAL("idPushButtonClicked(PyQt_PyObject)"), self.__colorButtonClicked)
+        
+        self.colorChooseLock = False
+        
         # Make the window knwo what is the main widget
         self.setCentralWidget(mainWidget)
         
@@ -159,6 +166,7 @@ class MainWindow(QMainWindow):
     def __showAbout(self):
         ret = QMessageBox.information(self,"Version Info", "Release: July 10, 2014")
     
+    ## Make the Default pattern Buttons ----------------------------------------------
     def __makeDefaultButtons(self):
        for iter in range(0,NUM_DEFAULT_PATTERNS):
            self.__Log("Making preset %d"%iter)
@@ -174,6 +182,7 @@ class MainWindow(QMainWindow):
        
        self.__drawPatternButtons()
     
+    ## Clear Layouts ------------------------------------------------------------------
     def __clearLayout(self, layout):
         if layout is not None:
             while layout.count():
@@ -184,8 +193,12 @@ class MainWindow(QMainWindow):
                 else:
                     self.__clearLayout(item.layout())
             
+    ## Draw the Premade pattern buttons ------------------------------------------------
     def __drawPatternButtons(self):
         self.__mode = PATTERN_SELECT_MODE
+        if self.__selectedPattern != None:
+            self.__selectedPattern.ClearColors()
+            
         self.__clearLayout(self.__selectedPatternLayout)
         self.__clearLayout(self.__defaultButtonLayout)
         self.__defaultButtonLayout = QVBoxLayout()
@@ -213,7 +226,7 @@ class MainWindow(QMainWindow):
                 desc = pattern.GetDescription()
                 #print "Name %s"%name
                 newLabel = QLabel(desc)
-                newButton = MyPushButton(self,name)
+                newButton = TagPushButton(self,name)
                 newButton.setMinimumSize(MIN_BUTTON_WIDTH,MIN_BUTTON_HEIGHT)
                 font = QFont(newButton.font())
                 font.setPointSize(BUTTON_FONT_SIZE)
@@ -233,56 +246,66 @@ class MainWindow(QMainWindow):
 
         self.__mainLayout.addLayout(self.__defaultButtonLayout)  
             
+    ## Color Button has been clicked -------------------------------------------------------
+    def __colorButtonClicked(self,colorID):
+        self.__Log("ColorID: %d"%colorID)
+        if self.__mode == PATTERN_EDIT_MODE:
+            ## Show color select.
+            self.colorChooseLock = True
+            self.__currentColorSelection = colorID - 1
+            self.__colorChooser = ColorChooser()
+            self.__colorChooser.ColorSelected.subscribe(self.__colorChooserSelected)
+            self.__colorChooser.CancelSelected.subscribe(self.__colorChooserCanceled)
+        else:
+            self.__Log("Bad Mode")
+    
+    def __colorChooserSelected(self,colorTag):
+        self.__Log("Got Color Selected: %s, setting index %d"%(colorTag,self.__currentColorSelection))
+        self.__selectedPattern.SetColor(self.__currentColorSelection,colorTag)
+        self.__drawPatternSettings(self.__selectedPattern)
+        self.colorChooseLock = False
         
+    def __colorChooserCanceled(self):
+        self.__Log("Releasing LOCK")
+        self.colorChooseLock = False
+        
+    
     def __buttonXClicked(self,buttonTag):
         self.__Log("Button Tag: %s"%buttonTag)
         if self.__mode == PATTERN_SELECT_MODE:
             self.__patternSelected(buttonTag)
         elif self.__mode == PATTERN_EDIT_MODE:
-            self.__editPattern(buttonTag)
+            # Must be the back or OK buttons
+            self.__patternEditControlPressed(buttonTag)
         else:
-            self.__Log("Unknown button tag")
+            self.__Log("Bad Mode")
         
-    def __editPattern(self,buttonTag):
-        print buttonTag.find("Color")
-        if buttonTag.find("Color") == 0:
-            self.__Log("Color button pressed.")
-        elif buttonTag == "Back":
-            self.__drawPatternButtons()
-        elif buttonTag == "OK":
-            self.__handleStart()
+    def __patternEditControlPressed(self,buttonTag):
+        if self.colorChooseLock:
+            self.__Log("Not respecting press, still in color choose.")
+            return
+        
+        if buttonTag == "Back":
             self.__drawPatternButtons()
         else:
             self.__Log("Unknown tag: %s"%buttonTag)
             
     def __patternSelected(self,buttonTag):
         self.__Log("Pattern \'%s\' pressed"%buttonTag)
-        self.__selectedPattern = buttonTag
-        self.__currentPatternLabel.setText(PATTERN_PREAMBLE+buttonTag)
+        #self.__currentPatternLabel.setText(PATTERN_PREAMBLE+buttonTag)
         
         # Get the actual pattern from the list of patterns
         for it in range(0,len(self.__patterns)):
-            tmpPattern = self.__patterns[it]
-            if tmpPattern.GetName() == buttonTag:
+            self.__selectedPattern = self.__patterns[it]
+            if self.__selectedPattern.GetName() == buttonTag:
                 self.__Log("FOUND PATTERN")
-                self.__drawPatternSettings(tmpPattern)
+                self.__drawPatternSettings(self.__selectedPattern)
                 return
         
         self.__Log("Didn't find a pattern that matched tag!")
         
-    def __addPattern(self):
-        self.__Log("Add Pattern")
-        newPattern = Pattern()
-        newDescription = "Pattern %d"%(len(self.__patterns))
-        self.__Log("New description %s"%newDescription)
-        copyPattern = self.__patterns[0]
-        newPattern = copyPattern.CopyPattern(newDescription)
-        self.__patterns += [newPattern]
-        self.__drawPatternButtons()
-        
-    def __deletePattern(self):
-        self.__Log("Delete Pattern")
-        
+   
+    ## Draw Settings Window -------------------------------------------------------  
     def __drawPatternSettings(self, pattern):
         self.__mode = PATTERN_EDIT_MODE
         self.__Log("Draw pattern settings")
@@ -310,9 +333,13 @@ class MainWindow(QMainWindow):
         colorButtonLayout = QHBoxLayout()
         colorButtonLayout.addStretch(1)
         for x in range(1,numOfColors+1,1):
-            newButton = MyPushButton(self,"Color %d..."%x)
+            buttonLayout = QVBoxLayout()
+            newButton = IDPushButton(self,"Color %d..."%x, x)
             newButton.setMaximumSize(100,100)
-            colorButtonLayout.addWidget(newButton)
+            newLabel = QLabel(self.__selectedPattern.GetColorByIndex(x-1))
+            buttonLayout.addWidget(newButton)
+            buttonLayout.addWidget(newLabel)
+            colorButtonLayout.addLayout(buttonLayout)
         colorButtonLayout.addStretch(1)
         self.__selectedPatternLayout.addLayout(colorButtonLayout)
         self.__selectedPatternLayout.addStretch(1)
@@ -320,9 +347,7 @@ class MainWindow(QMainWindow):
         # Control buttons
         controlButtonLayout = QHBoxLayout()
         controlButtonLayout.addStretch(1)
-        backButton = MyPushButton(self,"Back")
-        okButton = MyPushButton(self,"OK")
-        controlButtonLayout.addWidget(okButton)
+        backButton = TagPushButton(self,"Back")
         controlButtonLayout.addWidget(backButton)
         self.__selectedPatternLayout.addLayout(controlButtonLayout)
         
@@ -330,10 +355,43 @@ class MainWindow(QMainWindow):
             
     def __handleStart(self):
         self.__Log("START")
-        
+        if self.__selectedPattern.CanStart():
+            self.__Log("STARTING STARTING STARTING")
+            self.__running = True
+            self.__currentPatternLabel.setText(PATTERN_PREAMBLE + self.__selectedPattern.GetName())
+            self.__drawPatternButtons()
+            
     def __handleStop(self):
         self.__Log("STOP")
-        
+        if self.__running:
+            self.__running = False
+            self.__selectedPattern.ClearColors()
+            self.__currentPatternLabel.setText(PATTERN_PREAMBLE + NO_PATTERN_SELECTED)
+            self.__redrawMode()
+            
+    def __redrawMode(self):
+        if self.__mode == PATTERN_EDIT_MODE:
+            self.__drawPatternSettings(self.__selectedPattern)
+        elif self.__mode == PATTERN_SELECT_MODE:
+            self.__drawPatternButtons()
+        else:
+            self.__Log("No mode to redraw")
+            
     def __exit(self):
         self.close()
+        
+    ### DISABLED-----------------------------------------------------
+    def __addPattern(self):
+        self.__Log("Add Pattern")
+        newPattern = Pattern()
+        newDescription = "Pattern %d"%(len(self.__patterns))
+        self.__Log("New description %s"%newDescription)
+        copyPattern = self.__patterns[0]
+        newPattern = copyPattern.CopyPattern(newDescription)
+        self.__patterns += [newPattern]
+        self.__drawPatternButtons()
+        
+    ## Disabled-------------------------------------------------------- 
+    def __deletePattern(self):
+        self.__Log("Delete Pattern")
         

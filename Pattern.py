@@ -1,4 +1,6 @@
 import os, sys, time
+from util.Settings import Colors, ColorsByIndex
+
 #from RPGPIO import PWM
 
 class Pattern():
@@ -9,10 +11,29 @@ class Pattern():
         self.__colorList = colorList
         self.__requiredColors = numRequired
         self.__pwmSequence = pwm
-        
+    
+    def CanStart(self):
+        # Check colors
+        if  len(self.__colorList) != 0:
+            for color in self.__colorList:
+                if color == ColorsByIndex[Colors.Empty]:
+                    #print "Pattern: Not all colors configured"
+                    return False
+                #else:
+                #    print "Color %d is %s"%(self.__colorList.index(color), color)
+        # Check PWM sequence
+        return True    
+    
+    def ClearColors(self):
+        tmpList = list()
+        for color in self.__colorList:
+            tmpList += [ColorsByIndex[Colors.Empty]]
+            
+        self.__colorList = tmpList
+            
     def CopyPattern(self,name = None, description = None):
         retPattern = Pattern()
-        print description
+        #print description
         # Copy name
         if name == None:
             retPattern.SetName(self.__name)
@@ -48,19 +69,16 @@ class Pattern():
     def GetDefault(self):
         return self.__default
     
-    def SetColors(self,colorList):
-        self.__colorList = colorList
+    def SetColor(self,index,color):
+        if index >= len(self.__colorList):
+            print "Pattern: BAD INDEX"
+            return
         
-    #def SetColors(self,colorOne = None, colorTwo = None, colorThree = None):
-    #    tmpColors = list()
-    #    if colorOne is not None:
-    #        tmpColors = [colorOne]
-    #    if colorTwo is not None:
-    ##    if colorThree is not None:
-     #       tmpColors += [colorThree]
-     #   
-     #   if len(tmpColors) != 0:
-     #       self.SetColors(tmpColors)
+        self.__colorList[index] = color
+    
+    def GetColorByIndex(self,index):
+        print self.__colorList[index]
+        return self.__colorList[index]
     
     def GetColors(self):
         return self.__colorList
