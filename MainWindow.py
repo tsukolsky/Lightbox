@@ -20,6 +20,8 @@ WATERMARK_DIM = 80
 ADD_PATTERN_ENABLED = False
 PATTERN_PREAMBLE = "Selected Pattern: "
 NO_PATTERN_SELECTED = "None Selected"
+PATTERN_EDIT_MODE = "EDIT"
+PATTERN_SELECT_MODE = "SELECT"
 
 class MainWindow(QMainWindow):
     FILE_MENU = "&File"
@@ -60,6 +62,7 @@ class MainWindow(QMainWindow):
         self.__buttons = list()
         
         self.__defaultButtonLayout = QVBoxLayout()
+        self.__selectedPatternLayout = QVBoxLayout()
         self.__makeDefaultButtons()
         
         # Connect MyPushButton signals
@@ -67,7 +70,8 @@ class MainWindow(QMainWindow):
 
         # Make the window knwo what is the main widget
         self.setCentralWidget(mainWidget)
-
+        
+        self.__mode = PATTERN_SELECT_MODE
 
     def __createStatusLayout(self):
         self.__currentPatternLabel = QLabel(PATTERN_PREAMBLE + NO_PATTERN_SELECTED)
@@ -168,7 +172,7 @@ class MainWindow(QMainWindow):
            newPattern = Pattern(name, des, default,clist, reqColors, pwm)
            self.__patterns += [newPattern]
        
-       self.__redrawButtons()
+       self.__drawPatternButtons()
     
     def __clearLayout(self, layout):
         if layout is not None:
@@ -180,9 +184,12 @@ class MainWindow(QMainWindow):
                 else:
                     self.__clearLayout(item.layout())
             
-    def __redrawButtons(self):
+    def __drawPatternButtons(self):
+        self.__mode = PATTERN_SELECT_MODE
+        self.__clearLayout(self.__selectedPatternLayout)
         self.__clearLayout(self.__defaultButtonLayout)
         self.__defaultButtonLayout = QVBoxLayout()
+        self.__selectedPatternLayout = QVBoxLayout()
         self.__buttons = list()
         
         self.__Log("Redrawing Buttons")
@@ -228,9 +235,40 @@ class MainWindow(QMainWindow):
             
         
     def __buttonXClicked(self,buttonTag):
+        self.__Log("Button Tag: %s"%buttonTag)
+        if self.__mode == PATTERN_SELECT_MODE:
+            self.__patternSelected(buttonTag)
+        elif self.__mode == PATTERN_EDIT_MODE:
+            self.__editPattern(buttonTag)
+        else:
+            self.__Log("Unknown button tag")
+        
+    def __editPattern(self,buttonTag):
+        print buttonTag.find("Color")
+        if buttonTag.find("Color") == 0:
+            self.__Log("Color button pressed.")
+        elif buttonTag == "Back":
+            self.__drawPatternButtons()
+        elif buttonTag == "OK":
+            self.__handleStart()
+            self.__drawPatternButtons()
+        else:
+            self.__Log("Unknown tag: %s"%buttonTag)
+            
+    def __patternSelected(self,buttonTag):
         self.__Log("Pattern \'%s\' pressed"%buttonTag)
         self.__selectedPattern = buttonTag
         self.__currentPatternLabel.setText(PATTERN_PREAMBLE+buttonTag)
+        
+        # Get the actual pattern from the list of patterns
+        for it in range(0,len(self.__patterns)):
+            tmpPattern = self.__patterns[it]
+            if tmpPattern.GetName() == buttonTag:
+                self.__Log("FOUND PATTERN")
+                self.__drawPatternSettings(tmpPattern)
+                return
+        
+        self.__Log("Didn't find a pattern that matched tag!")
         
     def __addPattern(self):
         self.__Log("Add Pattern")
@@ -240,11 +278,56 @@ class MainWindow(QMainWindow):
         copyPattern = self.__patterns[0]
         newPattern = copyPattern.CopyPattern(newDescription)
         self.__patterns += [newPattern]
-        self.__redrawButtons()
+        self.__drawPatternButtons()
         
     def __deletePattern(self):
         self.__Log("Delete Pattern")
         
+    def __drawPatternSettings(self, pattern):
+        self.__mode = PATTERN_EDIT_MODE
+        self.__Log("Draw pattern settings")
+        self.__Log("Pattern \'%s\' pressed"%pattern.GetName())
+        self.__Log("Clearing pattern layout.")
+        self.__clearLayout(self.__defaultButtonLayout)
+        self.__clearLayout(self.__selectedPatternLayout)
+        
+        # Draw the layout based on the pattern
+        self.__defaultButtonLayout = QVBoxLayout()
+        self.__selectedPatternLayout = QVBoxLayout()
+        
+        # Pattern picture 
+        patternLayout = QHBoxLayout()
+        patLabel = QLabel(pattern.GetName())
+        image = QLabel("ICON HERE")
+        patternLayout.addStretch(1)
+        patternLayout.addWidget(patLabel)
+        patternLayout.addStretch(1)
+        self.__selectedPatternLayout.addLayout(patternLayout)
+        
+        # Color choosing buttons
+        numOfColors = pattern.GetRequiredColors()
+        self.__Log("Number of required colors is %d"%numOfColors)
+        colorButtonLayout = QHBoxLayout()
+        colorButtonLayout.addStretch(1)
+        for x in range(1,numOfColors+1,1):
+            newButton = MyPushButton(self,"Color %d..."%x)
+            newButton.setMaximumSize(100,100)
+            colorButtonLayout.addWidget(newButton)
+        colorButtonLayout.addStretch(1)
+        self.__selectedPatternLayout.addLayout(colorButtonLayout)
+        self.__selectedPatternLayout.addStretch(1)
+        
+        # Control buttons
+        controlButtonLayout = QHBoxLayout()
+        controlButtonLayout.addStretch(1)
+        backButton = MyPushButton(self,"Back")
+        okButton = MyPushButton(self,"OK")
+        controlButtonLayout.addWidget(okButton)
+        controlButtonLayout.addWidget(backButton)
+        self.__selectedPatternLayout.addLayout(controlButtonLayout)
+        
+        self.__mainLayout.addLayout(self.__selectedPatternLayout)
+            
     def __handleStart(self):
         self.__Log("START")
         
