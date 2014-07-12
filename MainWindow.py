@@ -51,7 +51,7 @@ class MainWindow(QMainWindow):
         # Make Main window
         QMainWindow.__init__(self, None)
         self.setWindowTitle("Lightbox")
-        self.resize(780, 440)       # Screen Size
+        self.resize(800, 440)       # Screen Size
         self.__log = Log
         self.CALLING_CLASS = "MainWindow"
         if self.__log == None:
