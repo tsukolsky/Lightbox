@@ -28,9 +28,6 @@ IntensityDict[4000] = 100.0
 
 DEFAULT_PATTERNS = list()
 
-# Color List MUST be initialized
-CONTINOUS_PATTERN = -1
-
 pattern_zero = list()
 pattern_zero.append("4Hz")
 pattern_zero.append("Continuous 4Hz")
@@ -38,7 +35,7 @@ pattern_zero.append(True)
 pattern_zero.append([ColorsByIndex[Colors.Empty]])
 pattern_zero.append(1)
 tmpDict = dict()
-tmpDict[0] = [4,CONTINOUS_PATTERN, 0]
+tmpDict[0] = [(.125,.125)]    # tuple
 pattern_zero.append(tmpDict)
 DEFAULT_PATTERNS.append(pattern_zero)
 
@@ -49,8 +46,8 @@ pattern_one.append(True)
 pattern_one.append([ColorsByIndex[Colors.Empty], ColorsByIndex[Colors.Empty]])
 pattern_one.append(2)
 tmpDict = dict()
-tmpDict[0] = [4,0.25, 0]
-tmpDict[1] = [4,0.25, 0]
+tmpDict[0] = [(.125, .125)]
+tmpDict[1] = [(.125, .125)]
 pattern_one.append(tmpDict)
 DEFAULT_PATTERNS.append(pattern_one)
 
@@ -61,8 +58,7 @@ pattern_two.append(True)
 pattern_two.append([ColorsByIndex[Colors.Empty]])
 pattern_two.append(1)
 tmpDict = dict()
-tmpDict[0] = [4, 1.0, 0.125]
-tmpDict[1] = [4, .75, 0.125] 
+tmpDict[0] = [(.125, .125), (.125, .125), (.125, .125), (.125, .250), (.125, .125), (.125, .125), (.125, .250)]
 pattern_two.append(tmpDict)
 DEFAULT_PATTERNS.append(pattern_two)
 
@@ -73,8 +69,8 @@ pattern_oops.append(True)
 pattern_oops.append([ColorsByIndex[Colors.Empty], ColorsByIndex[Colors.Empty]])
 pattern_oops.append(2)
 tmpDict = dict()
-tmpDict[0] = [4, 1.0, 0.125]
-tmpDict[1] = [4, .75, 0.125] 
+tmpDict[0] = [(.125, .125), (.125, .125), (.125, .125), (.125, .250)]
+tmpDict[1] = [(.125, .125), (.125, .125), (.125, .250)]
 pattern_oops.append(tmpDict)
 DEFAULT_PATTERNS.append(pattern_oops)
 
@@ -85,7 +81,7 @@ pattern_three.append(True)
 pattern_three.append([ColorsByIndex[Colors.Empty]])
 pattern_three.append(1)
 tmpDict = dict()
-tmpDict[0] = [6, CONTINOUS_PATTERN, 0]
+tmpDict[0] = [(.083, .083)]
 pattern_three.append(tmpDict)
 DEFAULT_PATTERNS.append(pattern_three)
 
@@ -96,11 +92,7 @@ pattern_four.append(True)
 pattern_four.append([ColorsByIndex[Colors.Empty]])
 pattern_four.append(1)
 tmpDict = dict()
-tmpDict[0] = [4, .75, 0]
-tmpDict[1] = [2.6, .375, .125]
-tmpDict[2] = tmpDict[1]
-tmpDict[3] = tmpDict[1]
-tmpDict[4] = tmpDict[0]
+tmpDict[0] = [(.125, .125), (.125, .125), (.125, .125), (.375, .125), (.375, .125), (.375, .125), (.125, .125), (.125, .125), (.125, .125)]
 pattern_four.append(tmpDict)
 DEFAULT_PATTERNS.append(pattern_four)
 
@@ -111,9 +103,11 @@ pattern_five.append(True)
 pattern_five.append([ColorsByIndex[Colors.Empty]])
 pattern_five.append(1)
 tmpDict = dict()
-tmpDict[0] = [2, 2.5, 0]
-tmpDict[1] = [4, 2, 0]
-tmpDict[2] = [6, 2.5, 0]
+tmpDict[0] = [(.25, .25), (.25, .25), (.25, .25), (.25, .25), (.25, .25), \
+              (.125, .125), (.125, .125), (.125, .125), (.125, .125), (.125, .125), (.125, .125), (.125, .125), (.125, .125), \
+              (.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .083), \
+              (.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .083), \
+              (.083, .083)]
 pattern_five.append(tmpDict)
 DEFAULT_PATTERNS.append(pattern_five)
 
@@ -124,9 +118,11 @@ pattern_six.append(True)
 pattern_six.append([ColorsByIndex[Colors.Empty],ColorsByIndex[Colors.Empty], ColorsByIndex[Colors.Empty]])
 pattern_six.append(3)
 tmpDict = dict()
-tmpDict[0] = [2, 2.5, 0]
-tmpDict[1] = [4, 2, 0]
-tmpDict[2] = [6, 2.5, 0]
+tmpDict[0] = [(.25, .25), (.25, .25), (.25, .25), (.25, .25), (.25, .25)]
+tmpDict[1] = [(.125, .125), (.125, .125), (.125, .125), (.125, .125), (.125, .125), (.125, .125), (.125, .125), (.125, .125)]
+tmpDict[2] = [(.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .083), \
+              (.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .083), \
+              (.083, .083)]
 pattern_six.append(tmpDict)
 DEFAULT_PATTERNS.append(pattern_six)
 
@@ -137,7 +133,7 @@ pattern_seven.append(True)
 pattern_seven.append([ColorsByIndex[Colors.Empty]])
 pattern_seven.append(1)
 tmpDict = dict()
-tmpDict[0] = [4, .125, .250] # Jerry Rigged 25% duty cycle
+tmpDict[0] = (.125, .375)
 pattern_seven.append(tmpDict)
 DEFAULT_PATTERNS.append(pattern_seven)
 
@@ -148,7 +144,7 @@ pattern_eight.append(True)
 pattern_eight.append([ColorsByIndex[Colors.Empty]])
 pattern_eight.append(1)
 tmpDict = dict()
-tmpDict[0] = [2, CONTINOUS_PATTERN, 0]
+tmpDict[0] = (.250, .250)
 pattern_eight.append(tmpDict)
 DEFAULT_PATTERNS.append(pattern_eight)
 
@@ -158,7 +154,9 @@ pattern_nine.append("2-Color, 2Hz 25% duty cycle, 4-3 Alt")
 pattern_nine.append(True)
 pattern_nine.append([ColorsByIndex[Colors.Empty],ColorsByIndex[Colors.Empty]])
 pattern_nine.append(2)
-tmpDict = dict()                    ## Don't know how to fool this one.
+tmpDict = dict()
+tmpDict[0] = [(.125, .375), (.125, .375), (.125, .375), (.125, .250)]
+tmpDict[1] = [(.125, .375), (.125, .375), (.125, .250)]
 pattern_nine.append(tmpDict)
 DEFAULT_PATTERNS.append(pattern_nine)
 
@@ -169,8 +167,8 @@ pattern_ten.append(True)
 pattern_ten.append([ColorsByIndex[Colors.Empty], ColorsByIndex[Colors.Empty]])
 pattern_ten.append(2)
 tmpDict = dict()
-tmpDict[0] = [2, 2, 0]
-tmpDict[1] = [2, 2, 0]
+tmpDict[0] = [(.250, .250), (.250, .250), (.250, .250), (.250, .250)]
+tmpDict[1] = tmpDict[0]
 pattern_ten.append(tmpDict)
 DEFAULT_PATTERNS.append(pattern_ten)
 
@@ -180,7 +178,8 @@ pattern_eleven.append("Continous Signal")
 pattern_eleven.append(True)
 pattern_eleven.append([ColorsByIndex[Colors.Empty]])
 pattern_eleven.append(1)
-tmpDict = [200, CONTINOUS_PATTERN, 0]
+tmpDict = dict()
+tmpDict[0] = (1.0, 0)
 pattern_eleven.append(tmpDict)
 DEFAULT_PATTERNS.append(pattern_eleven)
 

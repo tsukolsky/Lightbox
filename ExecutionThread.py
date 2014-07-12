@@ -1,12 +1,14 @@
 import threading, Queue, os, time
-#import RPi.GPIO as GPIO
-from util.Settings import GpioDict, IntensityDict, CONTINOUS_PATTERN
+from util.Settings import GpioDict, IntensityDict
 
-UBUNTU = True
+RASPI = False
+if RASPI:
+    import RPi.GPIO as RasIo
 
-FREQUENCY_OFFSET        = 0
-TIME_TO_LIGHT_OFFSET    = 1
-TIME_TO_WAIT_OFFSET     = 2
+DEFAULT_FREQUENCY = 120
+
+TIME_TO_LIGHT_OFFSET    = 0
+TIME_TO_WAIT_OFFSET     = 1
 
 class ExecutionThread(threading.Thread):
     def __init__(self, pattern, intensity):
@@ -21,9 +23,10 @@ class ExecutionThread(threading.Thread):
         numOfGpios = self.pattern.GetRequiredColors()
         colorList = self.pattern.GetColorList()
         pwmDict = self.pattern.GetPwmSequenceDict()
+        strobeIntensity = IntensityDict[self.intensity]
         
-        print colorList
-        print pwmDict
+        if RASPI:
+            RasIo.setmode(RasIo.BOARD)
         # Put together the GPIO list ------------------------------
         ## Case 1: pwmDict length == number of colors
         ## Case 2: pwmDict length > number of colors --> Make # GPIOs with the same pin to simulate # colors
@@ -31,76 +34,34 @@ class ExecutionThread(threading.Thread):
     
         gpioPinList = list()
         gpioList = list()
-        gpioFreqList = list()
-        gpioTimeList = list()
-        gpioWaitTimeList = list()
+        strobePatternList = list()
         
         if (len(colorList) == len(pwmDict)):
-            print "Color list and pwmDict correspond"
-            print "Color list len = %d"%len(colorList)
             for color in colorList:
-                print "Color %s"%color
                 index = colorList.index(color)
-                freq = pwmDict[index][FREQUENCY_OFFSET]
-                timeToLight = pwmDict[index][TIME_TO_LIGHT_OFFSET]
-                if (timeToLight == -1):
-                    print "CONTINOUS PATTERN"
-                    timeToLight = 1              # I literally just picked this number for no reason
-                    
-                timeToWait = pwmDict[index][TIME_TO_WAIT_OFFSET]
+                strobePattern = pwmDict[index]
                 
                 pin = GpioDict[color]
-                if not UBUNTU:
+                if RASPI:
+                    RasIo.setup(pin, RasIo.OUT)
                     gpio = GPIO.PWM(pin,freq)
                     gpioList += [gpio]
                 else:
                     gpioList += [0] 
                        
-                gpioFreqList += [freq]
                 gpioPinList += [pin]
-                gpioTimeList += [timeToLight]
-                gpioWaitTimeList += [timeToWait]
-        elif (len(colorList) < len(pwmDict)):
-            color = colorList[0]
-            for key, pwmList in pwmDict.iteritems():
-                freq = pwmList[FREQUENCY_OFFSET]
-                timeToLight = pwmList[TIME_TO_LIGHT_OFFSET]
-                if (timeToLight == -1):
-                    print"CONTINOUS PATTERN"
-                    timeToLight = 1
-                
-                timeToWait = pwmList[TIME_TO_WAIT_OFFSET]
-                pin = GpioDict[color]
-                
-                if not UBUNTU:
-                    gpio = GPIO.PWM(pin, freq)
-                    gpioList += [gpio]
-                else:
-                    gpioList += [0]
-                    
-                gpioFreqList += [freq]
-                gpioPinList += [pin]
-                gpioTimeList += [timeToLight]
-                gpioWaitTimeList += [timeToWait]
-        elif (len(colorList) == 2 and len(pwmDict) == 0):
-            print "Found the 2Hz 25% 4-3 alternating"
-            return
+                strobePatternList += [strobePattern]
         else:     
             print "Invalid configuration"
             self.join()
             
         configurationString = "======================= PWM Configuration ============================\n"
         for ind, gpio in enumerate(gpioList):
-            tmpColor = ""
-            tmpFreq = gpioFreqList[ind]
             tmpPin = gpioPinList[ind]
-            tmpDisplayTime = gpioTimeList[ind]
-            tmpOffTime = gpioWaitTimeList[ind]
-            if (len(colorList) != len(pwmDict)):
-                tmpColor = colorList[0]
-            else:
-                tmpColor = colorList[ind]
-            configurationString += "\n\tGPIO %d: Color- %s, Pin- %d, Frequency- %d, Display Time- %d, Off Time- %d"%(ind, tmpColor, tmpPin, tmpFreq, tmpDisplayTime, tmpOffTime)
+            tmpPattern = strobePatternList[ind]
+            tmpColor = colorList[ind]
+            configurationString += "\n\tGPIO %d: Color- %s, Pin- %d, Brightness- %d, Pattern- %s"%(ind, tmpColor, tmpPin, self.intensity, str(tmpPattern))
+            
         configurationString += "\n\n=======================================================================\n"
         print configurationString
         
@@ -108,15 +69,17 @@ class ExecutionThread(threading.Thread):
             ## Loop through each GPIO, turn it on for specified time, then off
             for ind,gpio in enumerate(gpioList):
                 print "BEEP"
-                displayTime = gpioTimeList[ind]
-                offTime = gpioWaitTimeList[ind]
-                if not UBUNTU:
-                    gpio.start(IntensityDict[self.intensity])
-                time.sleep(displayTime)
-                if not UBUNTU:
-                    gpio.stop()
-                time.sleep(offTime)
-                
+                timingSequence = strobePatternList[ind]
+                for timingPair in timingSequence:
+                    onTime = timingPair[0]
+                    offTime = timingPair[1]
+                    if RASPI:
+                        gpio.start(strobeIntensity)
+                    time.sleep(onTime)
+                    if RASPI:
+                        gpio.stop()
+                    time.sleep(offTime)
+                    
     def join(self, timeout=None):
         print "JOIN CALLED"
         self.stoprequest.set()

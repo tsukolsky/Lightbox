@@ -1,7 +1,10 @@
 import os, time, sys
-from RPi.GPIO import  GPIO
+import RPi.GPIO as RasIo
 
-redStrobe = GPIO.PWM(7,2)
+RasIo.setmode(RasIo.BOARD)
+RasIo.setup(7,RasIo.OUT)
+
+redStrobe = RasIo.PWM(7,2)
 redStrobe.start(100)
 
 time.sleep(5)
