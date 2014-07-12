@@ -411,7 +411,7 @@ class MainWindow(QMainWindow):
             if self.__running:
                 if (self.EXECUTION_THREAD != None):
                     self.EXECUTION_THREAD.join()
-                    self.sleep(1)
+                    time.sleep(1)
                     
             if self.__selectedPattern.CanStart():
                 self.__Log("STARTING STARTING STARTING")
