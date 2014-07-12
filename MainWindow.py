@@ -411,7 +411,7 @@ class MainWindow(QMainWindow):
             if self.__running:
                 if (self.EXECUTION_THREAD != None):
                     self.EXECUTION_THREAD.join()
-                    time.sleep(1)
+                    time.sleep(.5)
                     
             if self.__selectedPattern.CanStart():
                 self.__Log("STARTING STARTING STARTING")
@@ -422,7 +422,7 @@ class MainWindow(QMainWindow):
                 # Start Threading
                 self.EXECUTION_THREAD = ExecutionThread(self.__loadedPattern,4000)
                 self.EXECUTION_THREAD.start()
-                time.sleep(1)   # Sleep to make sure that the other thread gets what it needs
+                time.sleep(.5)   # Sleep to make sure that the other thread gets what it needs
                 self.__drawPatternButtons()
             elif self.__loadedPattern != None and self.__mode == PATTERN_SELECT_MODE and self.EXECUTION_THREAD != None:
                 self.__currentPatternLabel.setText(PATTERN_PREAMBLE + self.__loadedPattern.GetName())
