@@ -133,7 +133,7 @@ pattern_seven.append(True)
 pattern_seven.append([ColorsByIndex[Colors.Empty]])
 pattern_seven.append(1)
 tmpDict = dict()
-tmpDict[0] = (.125, .375)
+tmpDict[0] = [(.125, .375)]
 pattern_seven.append(tmpDict)
 DEFAULT_PATTERNS.append(pattern_seven)
 
@@ -144,7 +144,7 @@ pattern_eight.append(True)
 pattern_eight.append([ColorsByIndex[Colors.Empty]])
 pattern_eight.append(1)
 tmpDict = dict()
-tmpDict[0] = (.250, .250)
+tmpDict[0] = [(.250, .250)]
 pattern_eight.append(tmpDict)
 DEFAULT_PATTERNS.append(pattern_eight)
 
