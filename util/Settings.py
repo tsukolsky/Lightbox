@@ -13,18 +13,11 @@ GpioDict["Blue"]        = 15
 GpioDict["White"]       = 16
 GpioDict["Yellow"]      = 18
 
+Intensities = [400, 800, 1200, 1600, 2000, 2400, 2800, 3200, 3600, 4000]
+
 IntensityDict = dict()
-IntensityDict[0] = 0.0
-IntensityDict[400] = 10.0
-IntensityDict[800] = 20.0
-IntensityDict[1200] = 30.0
-IntensityDict[1600] = 40.0
-IntensityDict[2000] = 50.0
-IntensityDict[2400] = 60.0
-IntensityDict[2800] = 70.0
-IntensityDict[3200] = 80.0
-IntensityDict[3600] = 90.0
-IntensityDict[4000] = 100.0
+for intensity in Intensities:
+    IntensityDict[intensity] = (intensity)*1000/4000
 
 DEFAULT_PATTERNS = list()
 

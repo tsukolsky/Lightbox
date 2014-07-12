@@ -1,6 +1,5 @@
 import threading, Queue, os, time
 from util.Settings import GpioDict, IntensityDict
-
 RASPI = True
 if RASPI:
     import RPi.GPIO as RasIo
@@ -11,15 +10,20 @@ TIME_TO_LIGHT_OFFSET    = 0
 TIME_TO_WAIT_OFFSET     = 1
 
 class ExecutionThread(threading.Thread):
-    def __init__(self, pattern, intensity):
+    def __init__(self, pattern, intensity, log):
         super(ExecutionThread,self).__init__()
-        print "Setting up Execution Thread"
+        self.log = log
+        self.CALLING_CLASS = "ExecutionThread"
+        self.__log("Setting up Execution Thread")
         self.pattern = pattern
         self.stoprequest = threading.Event()
         self.intensity = intensity
+    
+    def __log(self,message):
+        self.log.LOG(self.CALLING_CLASS, message)
         
     def run(self):
-        print "Starting the thread"
+        self.__log("Starting the thread")
         numOfGpios = self.pattern.GetRequiredColors()
         colorList = self.pattern.GetColorList()
         pwmDict = self.pattern.GetPwmSequenceDict()
@@ -52,10 +56,10 @@ class ExecutionThread(threading.Thread):
                 gpioPinList += [pin]
                 strobePatternList += [strobePattern]
         else:     
-            print "Invalid configuration"
+            self.__log("Invalid configuration")
             self.join()
             
-        configurationString = "======================= PWM Configuration ============================\n"
+        configurationString = "\n======================= PWM Configuration ============================\n"
         for ind, gpio in enumerate(gpioList):
             tmpPin = gpioPinList[ind]
             tmpPattern = strobePatternList[ind]
@@ -63,12 +67,11 @@ class ExecutionThread(threading.Thread):
             configurationString += "\n\tGPIO %d: Color- %s, Pin- %d, Brightness- %d, Pattern- %s"%(ind, tmpColor, tmpPin, self.intensity, str(tmpPattern))
             
         configurationString += "\n\n=======================================================================\n"
-        print configurationString
+        self.__log(configurationString)
         
         while not self.stoprequest.isSet():
             ## Loop through each GPIO, turn it on for specified time, then off
             for ind,gpio in enumerate(gpioList):
-                print "BEEP"
                 timingSequence = strobePatternList[ind]
                 for timingPair in timingSequence:
                     onTime = timingPair[0]
@@ -81,9 +84,10 @@ class ExecutionThread(threading.Thread):
                     time.sleep(offTime)
                     
     def join(self, timeout=None):
-        print "JOIN CALLED"
+        self.__log("JOIN CALLED")
         self.stoprequest.set()
         time.sleep(.5)
-        RasIo.cleanup()
+        if RASPI:
+            RasIo.cleanup()
         super(ExecutionThread,self).join(timeout)
         

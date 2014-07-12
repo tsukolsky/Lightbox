@@ -1,30 +1,33 @@
 import os, sys, time
 from util.Settings import Colors, ColorsByIndex
 
-#from RPGPIO import PWM
 PWM_DICT_FREQUENCY  = 0
 PWM_DICT_DUTY       = 1
 PWM_DICT_SLEEP_TIME = 2
 
 class Pattern():
-    def __init__(self, name = "", des = "", default = False, colorList = list(), numRequired = -1, pwmDict = dict()):
+    def __init__(self, name = "", des = "", default = False, colorList = list(), numRequired = -1, pwmDict = dict(), log = None):
         self.__name = name
         self.__description = des
         self.__default = default
         self.__colorList = colorList
         self.__requiredColors = numRequired
         self.__pwmSequenceDict = pwmDict
-    
+        self.log = log
+        self.CALLING_CLASS = "Pattern"
+        
+    def __log(self, message):
+        self.log.LOG(self.CALLING_CLASS, message)
+        
     def CanStart(self):
         # Check colors
         if  len(self.__colorList) != 0:
             for color in self.__colorList:
                 if color == ColorsByIndex[Colors.Empty]:
-                    print "Pattern: Not all colors configured"
+                    self.__log("Pattern: Not all colors configured")
                     return False
                 else:
-                    print "Color %d is %s"%(self.__colorList.index(color), color)
-        # Check PWM sequence
+                    self.__log("Color %d is %s"%(self.__colorList.index(color), color))
         return True    
     
     def ClearColors(self):
@@ -54,7 +57,7 @@ class Pattern():
         return retPattern
     
     def SetName(self,name):
-        print "Setting Name: %s"%name
+        self.__log("Setting Name: %s"%name)
         self.__name = name
     
     def GetName(self):
@@ -80,11 +83,11 @@ class Pattern():
         
     def SetColor(self,index,color):
         if index >= len(self.__colorList):
-            print "Pattern: BAD INDEX"
+            self.__log("Pattern: BAD INDEX")
             return
         
         self.__colorList[index] = color
-        print "New Color list entry is %s for index %d"%(self.__colorList[index], index)
+        self.__log("New Color list entry is %s for index %d"%(self.__colorList[index], index))
     
     def GetColorByIndex(self,index):
         return self.__colorList[index]
