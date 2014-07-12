@@ -1,7 +1,7 @@
 import threading, Queue, os, time
 from util.Settings import GpioDict, IntensityDict
 
-RASPI = False
+RASPI = True
 if RASPI:
     import RPi.GPIO as RasIo
 
@@ -44,7 +44,7 @@ class ExecutionThread(threading.Thread):
                 pin = GpioDict[color]
                 if RASPI:
                     RasIo.setup(pin, RasIo.OUT)
-                    gpio = RasIo.PWM(pin,freq)
+                    gpio = RasIo.PWM(pin,DEFAULT_FREQUENCY)
                     gpioList += [gpio]
                 else:
                     gpioList += [0] 
