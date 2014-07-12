@@ -44,7 +44,7 @@ class ExecutionThread(threading.Thread):
                 pin = GpioDict[color]
                 if RASPI:
                     RasIo.setup(pin, RasIo.OUT)
-                    gpio = GPIO.PWM(pin,freq)
+                    gpio = RasIo.PWM(pin,freq)
                     gpioList += [gpio]
                 else:
                     gpioList += [0] 
