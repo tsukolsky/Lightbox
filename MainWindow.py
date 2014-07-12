@@ -236,10 +236,9 @@ class MainWindow(QMainWindow):
             self.__Log("Bad Mode")
             
     def __intensitySelected(self, ID):
+        ## NOTE: INtensity does not change until the STOP->START  is pressed.
         self.__Log("Got Intensity: %d"%ID)
         self.__currentIntensity = ID
-        if self.__running:
-            self.__handleStart()
         self.__intensityLabel.setText(INTENSITY_PREAMBLE + str(ID))
         self.__mode = self.__lastMode
         self.__redrawMode()
