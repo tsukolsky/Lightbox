@@ -17,7 +17,8 @@ class Pattern():
         self.CALLING_CLASS = "Pattern"
         
     def __log(self, message):
-        self.log.LOG(self.CALLING_CLASS, message)
+        if self.log != None:
+            self.log.LOG(self.CALLING_CLASS, message)
         
     def CanStart(self):
         # Check colors
@@ -52,8 +53,9 @@ class Pattern():
             retPattern.SetDescription(str(description))
             
         retPattern.SetDefault(False)
-        retPattern.SetColors(self.__colorList)
+        retPattern.SetColorList(self.__colorList)
         retPattern.SetPwmSequenceDict(self.__pwmSequenceDict)
+        retPattern.SetLog(self.log)
         return retPattern
     
     def SetName(self,name):
@@ -95,9 +97,14 @@ class Pattern():
     def GetColorList(self):
         return self.__colorList
     
+    def SetColorList(self,colorList):
+        self.__colorList = colorList
+    
     def SetRequiredColors(self,numColors):
         self.__requiredColors = numColors
         
     def GetRequiredColors(self):
         return self.__requiredColors
             
+    def SetLog(self, log):
+        self.log = log

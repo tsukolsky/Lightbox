@@ -19,7 +19,7 @@ CONTROL_LABEL_FONT_SIZE     = 10
 CONTROL_BUTTON_FONT_SIZE    = 10
 INTENSITY_BUTTON_FONT_SIZE  = 20
 MIN_BUTTON_HEIGHT           = 40
-MIN_BUTTON_WIDTH            = 90
+MIN_BUTTON_WIDTH            = 150
 STST_BUTTON_HEIGHT          = 30
 STST_BUTTON_WIDTH           = 70
 INTENSITY_BUTTON_MIN_HEIGHT = 50
@@ -29,11 +29,14 @@ PATTERN_PREAMBLE            = "Current Pattern: "
 NO_PATTERN_SELECTED         = "None"
 PATTERN_EDIT_MODE           = "EDIT"
 PATTERN_SELECT_MODE         = "SELECT"
+PATTERN_PRESET_SELECT_MODE  = "PRESET_SELECT"
+PATTERN_PRESET_DELETE_MODE  = "PRESET_DELETE"
 INTENSITY_SELECT_MODE       = "INTENSITY"
 INTENSITY_PREAMBLE          = "Intensity: "
 STATUS_PREAMBLE             = "Status: "
 STOPPED                     = "Stopped"
 RUNNING                     = "Running"
+PRESET_TAG                  = "Preset Patterns"
 
 class MainWindow(QMainWindow):
     FILE_MENU = "&File"
@@ -62,8 +65,11 @@ class MainWindow(QMainWindow):
       
         # Selected pattern
         self.__selectedPattern = None
+        self.__presetPatternForDeleting = None
         self.__currentIntensity = 4000  
         self.__loadedPattern = None
+        self.__CACHED_PRESET = None
+        
         # Add Menu Bard
         self.__menu = self.__createMenu()
 
@@ -73,10 +79,12 @@ class MainWindow(QMainWindow):
         
         self.__patterns = list()
         self.__buttons = list()
+        self.__savedPresets = list()
         
         self.__defaultButtonLayout = QVBoxLayout()
         self.__selectedPatternLayout = QVBoxLayout()
         self.__intensitySelectLayout = QVBoxLayout()
+        self.__presetButtonLayout = QVBoxLayout()
         self.__makeDefaultButtons()
         
         # Connect TagPushButton signals
@@ -219,22 +227,54 @@ class MainWindow(QMainWindow):
         elif self.__mode == INTENSITY_SELECT_MODE:
             # Get the intensity selected
             self.__intensitySelected(ID)
+        elif self.__mode == PATTERN_PRESET_DELETE_MODE:
+            self.__presetPatternSelectedForDelete(ID)
+        elif self.__mode == PATTERN_PRESET_SELECT_MODE:
+            self.__presetPatternSelectedForStart(ID)
+            self.__drawPatternButtons()
         else:
             self.__Log("Bad Mode")
               
     def _tagButtonClicked(self,buttonTag):
-        self.__Log("Button Tag: %s"%buttonTag)
+        self.__Log("Button Tag: %s, mode: %s"%(buttonTag, self.__mode))
         if self.__mode == PATTERN_SELECT_MODE:
             self.__patternSelected(buttonTag)
         elif self.__mode == PATTERN_EDIT_MODE:
             # Must be the back or OK buttons
             if buttonTag == "Back":
                 self.__patternEditControlPressed(buttonTag)
+            elif buttonTag == "Save as Preset":
+                self.__savePatternAsPreset()
             else:
                 self.__colorSelected(buttonTag)
+        elif self.__mode == PATTERN_PRESET_DELETE_MODE:
+            if buttonTag == "Cancel":
+                self.__drawPatternSettings(self.__selectedPattern,False)
+            elif buttonTag == "Delete":
+                self.__deletePresetPattern()
+                if self.__CACHED_PRESET != None:
+                    self.__savePatternAsPreset()
+                    self.__drawPatternSettings(self.__selectedPattern, False)
+        elif self.__mode == PATTERN_PRESET_SELECT_MODE:
+            if buttonTag == "Back":
+                self.__drawPatternButtons()
+            else:
+                self.__Log("Unknown button")
         else:
             self.__Log("Bad Mode")
+        
+    def __presetPatternSelectedForStart(self,ID):
+        if ID >= 0 and ID < len(self.__savedPresets):
+            self.__selectedPattern = self.__savedPresets[ID]
+            self.__handleStart()
+            return   
             
+    def __presetPatternSelectedForDelete(self, ID):
+        if ID >= 0 and ID < len(self.__savedPresets):
+            self.__presetPatternForDeleting = self.__savedPresets[ID]
+            self.__Log("FOUND PRESET PATTERN")
+            return         
+        
     def __intensitySelected(self, ID):
         ## NOTE: INtensity does not change until the STOP->START  is pressed.
         self.__Log("Got Intensity: %d"%ID)
@@ -245,9 +285,59 @@ class MainWindow(QMainWindow):
         
     def __colorSelected(self, colorTag):
         self.__Log("Got Color Selected: %s, setting index %d"%(colorTag,self.__currentColorSelection))
-        self.__selectedPattern.SetColor(self.__currentColorSelection,colorTag)
-        self.__drawPatternSettings(self.__selectedPattern) 
+        presetColorList = list()
+        for aPreset in self.__savedPresets:
+            self.__Log("Preset Colors:%s"%(",".join(aPreset.GetColorList())))
+            newList = list()
+            for color in aPreset.GetColorList():
+                for presetColor in ColorsByIndex:
+                    if presetColor == color:
+                        newList += [presetColor]
+                        break
+            presetColorList += [newList]
+            self.__Log("Preset Colors:%s"%(",".join(newList)))                    
             
+            #presetColorList += [aPreset.GetColorList()]    
+        self.__selectedPattern.SetColor(self.__currentColorSelection,colorTag)
+        for ind,aPreset in enumerate(self.__savedPresets):
+            self.__Log("Colors:  %s"%(",".join(presetColorList[ind])))
+            aPreset.SetColorList(presetColorList[ind])
+            self.__Log("Preset Colors:%s"%(",".join(aPreset.GetColorList())))
+            
+        self.__drawPatternSettings(self.__selectedPattern) 
+        
+    def __savePatternAsPreset(self):
+        self.__Log("Save Pattern As Preset")
+        if self.__selectedPattern.CanStart():
+            self.__Log("%d Presets already made"%len(self.__savedPresets))
+            for aPreset in self.__savedPresets:
+                self.__Log("Preset Colors:%s"%(",".join(aPreset.GetColorList())))
+                
+            if len(self.__savedPresets) < 12:
+                # Check to see if there is a duplicate of this already
+                newPattern = Pattern()
+                newPattern.SetName(self.__selectedPattern.GetName())
+                newPattern.SetDescription(self.__selectedPattern.GetDescription())
+                newPattern.SetLog(self.__log)
+                newPattern.SetPwmSequenceDict(self.__selectedPattern.GetPwmSequenceDict())
+                newPattern.SetColorList(self.__selectedPattern.GetColorList())
+                newPattern.SetRequiredColors(self.__selectedPattern.GetRequiredColors())
+                self.__Log("Colors %s"%(",".join(newPattern.GetColorList())))
+                for pattern in self.__savedPresets:
+                    if pattern.GetName() == newPattern.GetName():
+                        if pattern.GetColorList() == newPattern.GetColorList():
+                            return
+                
+                self.__savedPresets += [newPattern]
+                self.__CACHED_PRESET = None
+                self.__Log("Saved  Pattern.")
+            else:
+                self.__Log("Must Delete Pattern.")
+                self.__lastMode = self.__mode
+                self.__CACHED_PRESET = self.__selectedPattern
+                self.__drawPresetPatternsForDelete()
+        
+        
     def __patternEditControlPressed(self,buttonTag):
         if buttonTag == "Back":
             self.__drawPatternButtons()
@@ -256,6 +346,11 @@ class MainWindow(QMainWindow):
             
     def __patternSelected(self,buttonTag):
         self.__Log("Pattern \'%s\' pressed"%buttonTag)
+        
+        if buttonTag == PRESET_TAG:
+            self.__Log("Preset Button Pressed.")
+            self.__drawPresetPatternsForSelection()
+            return
         
         # Get the actual pattern from the list of patterns
         for it in range(0,len(self.__patterns)):
@@ -322,9 +417,10 @@ class MainWindow(QMainWindow):
         self.__patterns += [newPattern]
         self.__drawPatternButtons()
         
-    ## Disabled-------------------------------------------------------- 
-    def __deletePattern(self):
-        self.__Log("Delete Pattern")
+    ## Delete a preset pattern --------------------------------------
+    def __deletePresetPattern(self):
+        self.__Log("Delete Preset Pattern")
+        self.__savedPresets.remove(self.__presetPatternForDeleting)
         
     def __setFont(self, object, size):
         font = QFont(object.font())
@@ -348,14 +444,16 @@ class MainWindow(QMainWindow):
         self.__clearLayout(self.__selectedPatternLayout)
         self.__clearLayout(self.__defaultButtonLayout)
         self.__clearLayout(self.__intensitySelectLayout)
+        self.__clearLayout(self.__presetButtonLayout)
         
         self.__defaultButtonLayout = QVBoxLayout()
         self.__selectedPatternLayout = QVBoxLayout()
         self.__intensityLayout = QVBoxLayout()
+        self.__presetButtonLayout = QVBoxLayout()
         self.__buttons = list()
         
         self.__Log("Redrawing Buttons")
-        numOfButtons = len(self.__patterns)
+        numOfButtons = len(self.__patterns)# + 1         # One for preset
         numOfRows = numOfButtons/BUTTONS_PER_ROW
         lastRowStretch = False
         if numOfButtons%BUTTONS_PER_ROW != 0:
@@ -363,7 +461,7 @@ class MainWindow(QMainWindow):
             lastRowStretch = True
         self.__Log("Buttons: %d, Rows: %d"%(numOfButtons, numOfRows))
         for i in range(0,numOfRows):
-            self.__Log("Row %d"%i)
+            #self.__Log("Row %d"%i)
             newRow = QHBoxLayout()
             buttonsLeft = numOfButtons - i*BUTTONS_PER_ROW
             buttonsInRow = BUTTONS_PER_ROW
@@ -390,10 +488,19 @@ class MainWindow(QMainWindow):
                 labelLayout.addWidget(newLabel)
                 labelLayout.addStretch()
                 newButtonLayout.addLayout(labelLayout)
+                newButtonLayout.addStretch(1)
                 newRow.addLayout(newButtonLayout)
                 
             # Iflast row and < full, add stretch to left and right side (left done above)
             if lastRowStretch and i == numOfRows-1:
+                ## Add the preset button here, we know it's there
+                button = TagPushButton(self,PRESET_TAG)
+                self.__setFont(button, PATTERN_BUTTON_FONT_SIZE)
+                button.setMinimumSize(MIN_BUTTON_WIDTH,MIN_BUTTON_HEIGHT)
+                presetLayout = QVBoxLayout()
+                presetLayout.addWidget(button)
+                presetLayout.addStretch(1)
+                newRow.addLayout(presetLayout)
                 newRow.addStretch(1)
             self.__defaultButtonLayout.addLayout(newRow)
 
@@ -405,14 +512,15 @@ class MainWindow(QMainWindow):
         self.__Log("Draw pattern settings")
         self.__Log("Pattern \'%s\' pressed"%pattern.GetName())
         self.__Log("Clearing pattern layout.")
-        self.__clearLayout(self.__defaultButtonLayout)
         self.__clearLayout(self.__selectedPatternLayout)
+        self.__clearLayout(self.__defaultButtonLayout)
         self.__clearLayout(self.__intensitySelectLayout)
+        self.__clearLayout(self.__presetButtonLayout)
         
-        # Draw the layout based on the pattern
         self.__defaultButtonLayout = QVBoxLayout()
         self.__selectedPatternLayout = QVBoxLayout()
         self.__intensityLayout = QVBoxLayout()
+        self.__presetButtonLayout = QVBoxLayout()
         
         # Pattern picture 
         patternLayout = QHBoxLayout()
@@ -459,7 +567,9 @@ class MainWindow(QMainWindow):
         # Control buttons
         controlButtonLayout = QHBoxLayout()
         controlButtonLayout.addStretch(1)
+        saveButton = TagPushButton(self,"Save as Preset")
         backButton = TagPushButton(self,"Back")
+        controlButtonLayout.addWidget(saveButton)
         controlButtonLayout.addWidget(backButton)
         self.__selectedPatternLayout.addLayout(controlButtonLayout)
         
@@ -479,13 +589,15 @@ class MainWindow(QMainWindow):
     def __drawIntensityButtons(self):
         self.__mode = INTENSITY_SELECT_MODE
         self.__Log("Draw intensity buttons")
-        self.__clearLayout(self.__defaultButtonLayout)
         self.__clearLayout(self.__selectedPatternLayout)
+        self.__clearLayout(self.__defaultButtonLayout)
         self.__clearLayout(self.__intensitySelectLayout)
-
+        self.__clearLayout(self.__presetButtonLayout)
+        
         self.__defaultButtonLayout = QVBoxLayout()
         self.__selectedPatternLayout = QVBoxLayout()
-        self.__intensitySelectLayout = QVBoxLayout()
+        self.__intensityLayout = QVBoxLayout()
+        self.__presetButtonLayout = QVBoxLayout()
         
         self.__intensitySelectLayout.addStretch(1)
         
@@ -521,3 +633,95 @@ class MainWindow(QMainWindow):
             
         self.__mainLayout.addLayout(self.__intensitySelectLayout)
                 
+    def __drawPresetPatternsForDelete(self):
+        self.__mode = PATTERN_PRESET_DELETE_MODE
+        self.__createPresetPatternLayout()
+        controlLayout = QHBoxLayout()
+        controlLayout.addStretch(1)
+        deleteButton = TagPushButton(self,"Delete")
+        self.__setFont(deleteButton,CONTROL_BUTTON_FONT_SIZE)
+        cancelButton = TagPushButton(self,"Cancel")
+        self.__setFont(cancelButton, CONTROL_BUTTON_FONT_SIZE)
+        controlLayout.addWidget(cancelButton)
+        controlLayout.addWidget(deleteButton)
+        self.__presetButtonLayout.addStretch(1)
+        self.__presetButtonLayout.addLayout(controlLayout)
+        
+        self.__mainLayout.addLayout(self.__presetButtonLayout)
+        
+    def __drawPresetPatternsForSelection(self):
+        if len(self.__savedPresets) > 0:
+            self.__mode = PATTERN_PRESET_SELECT_MODE
+            self.__createPresetPatternLayout()
+            controlLayout = QHBoxLayout()
+            controlLayout.addStretch(1)
+            backButton = TagPushButton(self,"Back")
+            self.__setFont(backButton,CONTROL_BUTTON_FONT_SIZE)
+            controlLayout.addWidget(backButton)
+            self.__presetButtonLayout.addStretch(1)
+            self.__presetButtonLayout.addLayout(controlLayout)
+            self.__mainLayout.addLayout(self.__presetButtonLayout)
+        else:
+            self.__drawPatternButtons()
+    
+    def __createPresetPatternLayout(self):
+        self.__clearLayout(self.__selectedPatternLayout)
+        self.__clearLayout(self.__defaultButtonLayout)
+        self.__clearLayout(self.__intensitySelectLayout)
+        self.__clearLayout(self.__presetButtonLayout)
+        
+        self.__defaultButtonLayout = QVBoxLayout()
+        self.__selectedPatternLayout = QVBoxLayout()
+        self.__intensityLayout = QVBoxLayout()
+        self.__presetButtonLayout = QVBoxLayout()
+        
+        if len(self.__savedPresets) <= 0:
+            return
+        numOfButtons = len(self.__savedPresets)
+        
+        numOfRows = numOfButtons/BUTTONS_PER_ROW
+        lastRowStretch = False
+        if numOfButtons%BUTTONS_PER_ROW != 0:
+            numOfRows += 1
+            lastRowStretch = True
+        self.__Log("Buttons: %d, Rows: %d"%(numOfButtons, numOfRows))
+        for i in range(0,numOfRows):
+            self.__Log("Row %d"%i)
+            newRow = QHBoxLayout()
+            buttonsLeft = numOfButtons - i*BUTTONS_PER_ROW
+            buttonsInRow = BUTTONS_PER_ROW
+            if buttonsLeft < BUTTONS_PER_ROW:
+                buttonsInRow = buttonsLeft
+                newRow.addStretch(1)
+            for j in range(0,buttonsInRow):
+                patternId = i*BUTTONS_PER_ROW + j
+                #print "Pattern ID %d"%patternId
+                pattern = self.__savedPresets[patternId]
+                name = pattern.GetName()
+                desc = ",".join(pattern.GetColorList())
+                #print "Name %s"%name
+                newLabel = QLabel(desc)
+                self.__setFont(newLabel,PATTERN_LABEL_FONT_SIZE)
+                newButton = IDPushButton(self,name, patternId)
+                newButton.setMinimumSize(MIN_BUTTON_WIDTH,MIN_BUTTON_HEIGHT)
+                self.__setFont(newButton, PATTERN_BUTTON_FONT_SIZE)
+                self.__buttons.append(newButton)
+                newButtonLayout = QVBoxLayout()
+                newButtonLayout.addWidget(newButton)
+                labelLayout = QHBoxLayout()
+                labelLayout.addStretch(1)
+                labelLayout.addWidget(newLabel)
+                labelLayout.addStretch(1)
+                newButtonLayout.addLayout(labelLayout)
+                newRow.addLayout(newButtonLayout)
+                
+            # Iflast row and < full, add stretch to left and right side (left done above)
+            if lastRowStretch and i == numOfRows-1:
+                newRow.addStretch(1)
+            self.__presetButtonLayout.addLayout(newRow)
+            
+        
+        
+        
+        
+        
