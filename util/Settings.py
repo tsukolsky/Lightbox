@@ -179,7 +179,7 @@ pattern_eleven.append(True)
 pattern_eleven.append([ColorsByIndex[Colors.Empty]])
 pattern_eleven.append(1)
 tmpDict = dict()
-tmpDict[0] = (1.0, 0)
+tmpDict[0] = [(1.0, 0)]
 pattern_eleven.append(tmpDict)
 DEFAULT_PATTERNS.append(pattern_eleven)
 
