@@ -51,7 +51,7 @@ class MainWindow(QMainWindow):
         # Make Main window
         QMainWindow.__init__(self, None)
         self.setWindowTitle("Lightbox")
-        self.resize(800, 440)       # Screen Size
+        self.resize(800, 480)       # Screen Size
         self.__log = Log
         self.CALLING_CLASS = "MainWindow"
         if self.__log == None:
@@ -370,7 +370,7 @@ class MainWindow(QMainWindow):
             if self.__running:
                 if (self.EXECUTION_THREAD != None):
                     self.EXECUTION_THREAD.join()
-                    time.sleep(.5)
+                    time.sleep(.75)
                     
             if self.__selectedPattern.CanStart():
                 self.__Log("STARTING STARTING STARTING")
@@ -381,13 +381,14 @@ class MainWindow(QMainWindow):
                 # Start Threading
                 self.EXECUTION_THREAD = ExecutionThread(self.__loadedPattern,self.__currentIntensity, self.__log)
                 self.EXECUTION_THREAD.start()
-                time.sleep(.5)   # Sleep to make sure that the other thread gets what it needs
+                time.sleep(.75)   # Sleep to make sure that the other thread gets what it needs
                 self.__drawPatternButtons()
             elif self.__loadedPattern != None and self.__mode == PATTERN_SELECT_MODE and self.EXECUTION_THREAD != None:
                 self.__currentPatternLabel.setText(PATTERN_PREAMBLE + self.__loadedPattern.GetName())
                 self.__currentStatusLabel.setText(STATUS_PREAMBLE + RUNNING)
                 self.EXECUTION_THREAD = ExecutionThread(self.__loadedPattern,self.__currentIntensity, self.__log)
                 self.EXECUTION_THREAD.start()
+                time.sleep(.75)
             
     def __handleStop(self):
         self.__Log("STOP")
@@ -400,6 +401,7 @@ class MainWindow(QMainWindow):
             # Stop Threading
             if (self.EXECUTION_THREAD != None):
                 self.EXECUTION_THREAD.join()
+                time.sleep(.75)
                 
             self.__redrawMode()
             
