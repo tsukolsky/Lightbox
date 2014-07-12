@@ -80,8 +80,11 @@ class ExecutionThread(threading.Thread):
                         gpio.stop()
                     time.sleep(offTime)
                     
+        RasIo.cleanup()
+                    
     def join(self, timeout=None):
         print "JOIN CALLED"
         self.stoprequest.set()
+        RasIo.cleanup()
         super(ExecutionThread,self).join(timeout)
         
