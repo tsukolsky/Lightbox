@@ -17,7 +17,7 @@ Intensities = [400, 800, 1200, 1600, 2000, 2400, 2800, 3200, 3600, 4000]
 
 IntensityDict = dict()
 for intensity in Intensities:
-    IntensityDict[intensity] = (intensity)*1000/4000
+    IntensityDict[intensity] = (intensity)*100/4000
 
 DEFAULT_PATTERNS = list()
 

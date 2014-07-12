@@ -64,7 +64,7 @@ class ExecutionThread(threading.Thread):
             tmpPin = gpioPinList[ind]
             tmpPattern = strobePatternList[ind]
             tmpColor = colorList[ind]
-            configurationString += "\n\tGPIO %d: Color- %s, Pin- %d, Brightness- %d, Pattern- %s"%(ind, tmpColor, tmpPin, self.intensity, str(tmpPattern))
+            configurationString += "\n\tGPIO %d: Color- %s, Pin- %d, Brightness- %d, %d, Pattern- %s"%(ind, tmpColor, tmpPin, self.intensity, strobeIntensity, str(tmpPattern))
             
         configurationString += "\n\n=======================================================================\n"
         self.__log(configurationString)
