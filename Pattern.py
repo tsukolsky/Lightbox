@@ -2,25 +2,28 @@ import os, sys, time
 from util.Settings import Colors, ColorsByIndex
 
 #from RPGPIO import PWM
+PWM_DICT_FREQUENCY  = 0
+PWM_DICT_DUTY       = 1
+PWM_DICT_SLEEP_TIME = 2
 
 class Pattern():
-    def __init__(self, name = "", des = "", default = False, colorList = list(), numRequired = -1, pwm = list()):
+    def __init__(self, name = "", des = "", default = False, colorList = list(), numRequired = -1, pwmDict = dict()):
         self.__name = name
         self.__description = des
         self.__default = default
         self.__colorList = colorList
         self.__requiredColors = numRequired
-        self.__pwmSequence = pwm
+        self.__pwmSequenceDict = pwmDict
     
     def CanStart(self):
         # Check colors
         if  len(self.__colorList) != 0:
             for color in self.__colorList:
                 if color == ColorsByIndex[Colors.Empty]:
-                    #print "Pattern: Not all colors configured"
+                    print "Pattern: Not all colors configured"
                     return False
-                #else:
-                #    print "Color %d is %s"%(self.__colorList.index(color), color)
+                else:
+                    print "Color %d is %s"%(self.__colorList.index(color), color)
         # Check PWM sequence
         return True    
     
@@ -47,7 +50,7 @@ class Pattern():
             
         retPattern.SetDefault(False)
         retPattern.SetColors(self.__colorList)
-        retPattern.SetPwmSequence(self.__pwmSequence)
+        retPattern.SetPwmSequenceDict(self.__pwmSequenceDict)
         return retPattern
     
     def SetName(self,name):
@@ -69,18 +72,24 @@ class Pattern():
     def GetDefault(self):
         return self.__default
     
+    def SetPwmSequenceDict(self,pwmDict):
+        self.__pwmSequenceDict = pwmDict
+        
+    def GetPwmSequenceDict(self):
+        return self.__pwmSequenceDict
+        
     def SetColor(self,index,color):
         if index >= len(self.__colorList):
             print "Pattern: BAD INDEX"
             return
         
         self.__colorList[index] = color
+        print "New Color list entry is %s for index %d"%(self.__colorList[index], index)
     
     def GetColorByIndex(self,index):
-        print self.__colorList[index]
         return self.__colorList[index]
     
-    def GetColors(self):
+    def GetColorList(self):
         return self.__colorList
     
     def SetRequiredColors(self,numColors):
@@ -88,10 +97,4 @@ class Pattern():
         
     def GetRequiredColors(self):
         return self.__requiredColors
-                
-    def SetPwmSequence(self,sequence):
-        self.__pwmSequence = sequence
-        
-    def GetPwm(self):
-        return self.__pwmSequence
             

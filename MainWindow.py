@@ -3,13 +3,13 @@ from PyQt4.QtGui import QMainWindow, QWidget, QHBoxLayout, QPushButton, QTabBar,
                         QMessageBox, QPixmap
                         
 from PyQt4.QtCore import Qt, SIGNAL
-import sys
+import sys, os, time
 from PyQt4.QtGui import QApplication
 from util.Log import Log
 from util.Settings import *
 from util.MyPushButton import TagPushButton, IDPushButton
-from ColorChooser import ColorChooser
 from Pattern import Pattern
+from ExecutionThread import ExecutionThread
 
 BUTTONS_PER_ROW = 4
 BUTTON_FONT_SIZE = 14
@@ -19,10 +19,16 @@ STST_BUTTON_HEIGHT = 50
 STST_BUTTON_WIDTH = 80
 WATERMARK_DIM = 80
 ADD_PATTERN_ENABLED = False
-PATTERN_PREAMBLE = "Running Pattern: "
+PATTERN_PREAMBLE = "Current Pattern: "
 NO_PATTERN_SELECTED = "None"
 PATTERN_EDIT_MODE = "EDIT"
 PATTERN_SELECT_MODE = "SELECT"
+
+STATUS_PREAMBLE = "Status: "
+STOPPED = "Stopped"
+RUNNING = "Running"
+
+INTENSITY_PREAMBLE = "Intensity: "
 
 class MainWindow(QMainWindow):
     FILE_MENU = "&File"
@@ -51,7 +57,8 @@ class MainWindow(QMainWindow):
       
         # Selected pattern
         self.__selectedPattern = None
-        
+        self.__currentIntensity = 4000  
+        self.__loadedPattern = None
         # Add Menu Bard
         self.__menu = self.__createMenu()
 
@@ -70,21 +77,26 @@ class MainWindow(QMainWindow):
         self.__makeDefaultButtons()
         
         # Connect TagPushButton signals
-        self.connect(self, SIGNAL("tagPushButtonClicked(PyQt_PyObject)"), self.__buttonXClicked)
-        self.connect(self,SIGNAL("idPushButtonClicked(PyQt_PyObject)"), self.__colorButtonClicked)
-        
-        self.colorChooseLock = False
+        self.connect(self, SIGNAL("tagPushButtonClicked(PyQt_PyObject)"), self._tagButtonClicked)
+        self.connect(self,SIGNAL("idPushButtonClicked(PyQt_PyObject)"), self._idButtonClicked)
         
         # Make the window knwo what is the main widget
         self.setCentralWidget(mainWidget)
         
         self.__mode = PATTERN_SELECT_MODE
 
+        self.__running = False
+
     def __createStatusLayout(self):
+        ## Make the currently running, start and stop button, running status
         self.__currentPatternLabel = QLabel(PATTERN_PREAMBLE + NO_PATTERN_SELECTED)
         font = self.__currentPatternLabel.font()
         font.setPointSize(18)
         self.__currentPatternLabel.setFont(font)
+        self.__currentStatusLabel = QLabel(STATUS_PREAMBLE + STOPPED)
+        font = self.__currentStatusLabel.font()
+        font.setPointSize(18)
+        self.__currentStatusLabel.setFont(font)
         self.StartButton = QPushButton("Start")
         font = self.StartButton.font()
         font.setPointSize(18)
@@ -102,28 +114,33 @@ class MainWindow(QMainWindow):
         self.StartButton.clicked.connect(self.__handleStart)
         self.StopButton.clicked.connect(self.__handleStop)
         
-        currentSelectionLayout = QVBoxLayout()
-        infoLayout = QHBoxLayout()
-        infoLayout.addStretch(1)
-        infoLayout.addWidget(self.__currentPatternLabel)
-        startStopLayout = QHBoxLayout()
-        startStopLayout.addStretch(1)
-        startStopLayout.addWidget(self.StartButton)
-        startStopLayout.addWidget(self.StopButton)
+        currentSelectionLayout = QHBoxLayout()
+        currentSelectionLayout.addWidget(self.__currentPatternLabel)
+        currentSelectionLayout.addStretch(1)
+        currentSelectionLayout.addWidget(self.__currentStatusLabel)
+        currentSelectionLayout.addStretch(1)
+        currentSelectionLayout.addWidget(self.StartButton)
+        currentSelectionLayout.addWidget(self.StopButton)
+        
+        ## Make Intensity Layout
+        self.__intensityLabel = QLabel(INTENSITY_PREAMBLE + str(self.__currentIntensity))
+        font = self.__intensityLabel.font()
+        font.setPointSize(18)
+        self.__intensityLabel.setFont(font)
+        self.__intensityButton = QPushButton("Set Intensity...")
+        font = self.__intensityButton.font()
+        font.setPointSize(18)
+        self.__intensityButton.setFont(font)
+        self.__intensityButton.setMinimumSize(STST_BUTTON_WIDTH*2, STST_BUTTON_HEIGHT)
+        self.__intensityButton.clicked.connect(self.__intensityButtonClicked)
+        intensityLayout = QHBoxLayout()
+        intensityLayout.addWidget(self.__intensityLabel)
+        intensityLayout.addStretch(1)
+        intensityLayout.addWidget(self.__intensityButton)
 
-        infoBarLayout = QHBoxLayout()
-        logoLayout = QVBoxLayout()
-        origMark = QPixmap("icons/USCG.jpg")
-        newMark = origMark.scaled(150,150)
-        logoLabel = QLabel()
-        logoLabel.setPixmap(newMark)
-        logoLayout.addWidget(logoLabel)
-        
-        currentSelectionLayout.addLayout(infoLayout)
-        currentSelectionLayout.addLayout(startStopLayout)
-        
-        infoBarLayout.addLayout(logoLayout)
+        infoBarLayout = QVBoxLayout()
         infoBarLayout.addLayout(currentSelectionLayout)
+        infoBarLayout.addLayout(intensityLayout)
         
         return infoBarLayout
         
@@ -196,8 +213,8 @@ class MainWindow(QMainWindow):
     ## Draw the Premade pattern buttons ------------------------------------------------
     def __drawPatternButtons(self):
         self.__mode = PATTERN_SELECT_MODE
-        if self.__selectedPattern != None:
-            self.__selectedPattern.ClearColors()
+        #if self.__selectedPattern != None:
+        #    self.__selectedPattern.ClearColors()
             
         self.__clearLayout(self.__selectedPatternLayout)
         self.__clearLayout(self.__defaultButtonLayout)
@@ -208,8 +225,10 @@ class MainWindow(QMainWindow):
         self.__Log("Redrawing Buttons")
         numOfButtons = len(self.__patterns)
         numOfRows = numOfButtons/BUTTONS_PER_ROW
+        lastRowStretch = False
         if numOfButtons%BUTTONS_PER_ROW != 0:
             numOfRows += 1
+            lastRowStretch = True
         self.__Log("Buttons: %d, Rows: %d"%(numOfButtons, numOfRows))
         for i in range(0,numOfRows):
             self.__Log("Row %d"%i)
@@ -218,6 +237,7 @@ class MainWindow(QMainWindow):
             buttonsInRow = BUTTONS_PER_ROW
             if buttonsLeft < BUTTONS_PER_ROW:
                 buttonsInRow = buttonsLeft
+                newRow.addStretch(1)
             for j in range(0,buttonsInRow):
                 patternId = i*BUTTONS_PER_ROW + j
                 #print "Pattern ID %d"%patternId
@@ -241,50 +261,59 @@ class MainWindow(QMainWindow):
                 newButtonLayout.addLayout(labelLayout)
                 newRow.addLayout(newButtonLayout)
                 
-                
+            # Iflast row and < full, add stretch to left and right side (left done above)
+            if lastRowStretch and i == numOfRows-1:
+                newRow.addStretch(1)
             self.__defaultButtonLayout.addLayout(newRow)
 
         self.__mainLayout.addLayout(self.__defaultButtonLayout)  
             
     ## Color Button has been clicked -------------------------------------------------------
-    def __colorButtonClicked(self,colorID):
-        self.__Log("ColorID: %d"%colorID)
+    def _idButtonClicked(self,ID):
+        ## Currently only Color buttons are using the ID Button
+        self.__Log("ColorID: %d"%ID)
         if self.__mode == PATTERN_EDIT_MODE:
             ## Show color select.
-            self.colorChooseLock = True
-            self.__currentColorSelection = colorID - 1
-            self.__colorChooser = ColorChooser()
-            self.__colorChooser.ColorSelected.subscribe(self.__colorChooserSelected)
-            self.__colorChooser.CancelSelected.subscribe(self.__colorChooserCanceled)
+            self.__currentColorSelection = ID - 1
+            self.__drawColorButtons()
         else:
             self.__Log("Bad Mode")
     
-    def __colorChooserSelected(self,colorTag):
+    def __drawColorButtons(self):
+        self.__colorButtonChooserLayout = QHBoxLayout()
+        numOfColors = len(Colors)
+        
+        for i in range(0,numOfColors-1):        ## -1 excludes the Empty
+            button = TagPushButton(self,Colors[i])
+            font = button.font()
+            font.setPointSize(14)
+            button.setFont(font)
+            self.__colorButtonChooserLayout.addWidget(button)
+        
+        self.__drawPatternSettings(self.__selectedPattern, True)
+        
+    def __colorSelected(self, colorTag):
         self.__Log("Got Color Selected: %s, setting index %d"%(colorTag,self.__currentColorSelection))
         self.__selectedPattern.SetColor(self.__currentColorSelection,colorTag)
-        self.__drawPatternSettings(self.__selectedPattern)
-        self.colorChooseLock = False
-        
-    def __colorChooserCanceled(self):
-        self.__Log("Releasing LOCK")
-        self.colorChooseLock = False
-        
+        self.__drawPatternSettings(self.__selectedPattern) 
     
-    def __buttonXClicked(self,buttonTag):
+    def __intensityButtonClicked(self):
+        self.__Log("Intensity Button Clicked")
+    
+    def _tagButtonClicked(self,buttonTag):
         self.__Log("Button Tag: %s"%buttonTag)
         if self.__mode == PATTERN_SELECT_MODE:
             self.__patternSelected(buttonTag)
         elif self.__mode == PATTERN_EDIT_MODE:
             # Must be the back or OK buttons
-            self.__patternEditControlPressed(buttonTag)
+            if buttonTag == "Back":
+                self.__patternEditControlPressed(buttonTag)
+            else:
+                self.__colorSelected(buttonTag)
         else:
             self.__Log("Bad Mode")
         
     def __patternEditControlPressed(self,buttonTag):
-        if self.colorChooseLock:
-            self.__Log("Not respecting press, still in color choose.")
-            return
-        
         if buttonTag == "Back":
             self.__drawPatternButtons()
         else:
@@ -299,6 +328,7 @@ class MainWindow(QMainWindow):
             self.__selectedPattern = self.__patterns[it]
             if self.__selectedPattern.GetName() == buttonTag:
                 self.__Log("FOUND PATTERN")
+                self.__selectedPattern.ClearColors()
                 self.__drawPatternSettings(self.__selectedPattern)
                 return
         
@@ -306,7 +336,7 @@ class MainWindow(QMainWindow):
         
    
     ## Draw Settings Window -------------------------------------------------------  
-    def __drawPatternSettings(self, pattern):
+    def __drawPatternSettings(self, pattern, withColors=False):
         self.__mode = PATTERN_EDIT_MODE
         self.__Log("Draw pattern settings")
         self.__Log("Pattern \'%s\' pressed"%pattern.GetName())
@@ -321,6 +351,9 @@ class MainWindow(QMainWindow):
         # Pattern picture 
         patternLayout = QHBoxLayout()
         patLabel = QLabel(pattern.GetName())
+        font = patLabel.font()
+        font.setPointSize(20)
+        patLabel.setFont(font)
         image = QLabel("ICON HERE")
         patternLayout.addStretch(1)
         patternLayout.addWidget(patLabel)
@@ -334,14 +367,33 @@ class MainWindow(QMainWindow):
         colorButtonLayout.addStretch(1)
         for x in range(1,numOfColors+1,1):
             buttonLayout = QVBoxLayout()
+            
+            # Make Button
             newButton = IDPushButton(self,"Color %d..."%x, x)
+            font = newButton.font()
+            font.setPointSize(14)
+            newButton.setFont(font)
             newButton.setMaximumSize(100,100)
+            
+            # Make Label
             newLabel = QLabel(self.__selectedPattern.GetColorByIndex(x-1))
+            font = newLabel.font()
+            font.setPointSize(14)
+            newLabel.setFont(font)
             buttonLayout.addWidget(newButton)
-            buttonLayout.addWidget(newLabel)
+            labelLayout = QHBoxLayout()
+            labelLayout.addStretch(1)
+            labelLayout.addWidget(newLabel)
+            labelLayout.addStretch(1)
+            
+            # Add label to button layout, button layout to color button layout
+            buttonLayout.addLayout(labelLayout)
             colorButtonLayout.addLayout(buttonLayout)
+            
         colorButtonLayout.addStretch(1)
         self.__selectedPatternLayout.addLayout(colorButtonLayout)
+        if withColors:
+            self.__selectedPatternLayout.addLayout(self.__colorButtonChooserLayout)
         self.__selectedPatternLayout.addStretch(1)
         
         # Control buttons
@@ -355,18 +407,40 @@ class MainWindow(QMainWindow):
             
     def __handleStart(self):
         self.__Log("START")
-        if self.__selectedPattern.CanStart():
-            self.__Log("STARTING STARTING STARTING")
-            self.__running = True
-            self.__currentPatternLabel.setText(PATTERN_PREAMBLE + self.__selectedPattern.GetName())
-            self.__drawPatternButtons()
+        if (self.__selectedPattern != None):
+            if self.__running:
+                if (self.EXECUTION_THREAD != None):
+                    self.EXECUTION_THREAD.join()
+                    
+            if self.__selectedPattern.CanStart():
+                self.__Log("STARTING STARTING STARTING")
+                self.__running = True
+                self.__loadedPattern = self.__selectedPattern
+                self.__currentPatternLabel.setText(PATTERN_PREAMBLE + self.__loadedPattern.GetName())
+                self.__currentStatusLabel.setText(STATUS_PREAMBLE + RUNNING)
+                # Start Threading
+                self.EXECUTION_THREAD = ExecutionThread(self.__loadedPattern,4000)
+                self.EXECUTION_THREAD.start()
+                time.sleep(1)   # Sleep to make sure that the other thread gets what it needs
+                self.__drawPatternButtons()
+            elif self.__loadedPattern != None and self.__mode == PATTERN_SELECT_MODE and self.EXECUTION_THREAD != None:
+                self.__currentPatternLabel.setText(PATTERN_PREAMBLE + self.__loadedPattern.GetName())
+                self.__currentStatusLabel.setText(STATUS_PREAMBLE + RUNNING)
+                self.EXECUTION_THREAD = ExecutionThread(self.__loadedPattern,4000)
+                self.EXECUTION_THREAD.start()
             
     def __handleStop(self):
         self.__Log("STOP")
         if self.__running:
             self.__running = False
-            self.__selectedPattern.ClearColors()
-            self.__currentPatternLabel.setText(PATTERN_PREAMBLE + NO_PATTERN_SELECTED)
+            #self.__selectedPattern.ClearColors()
+            #self.__currentPatternLabel.setText(PATTERN_PREAMBLE + NO_PATTERN_SELECTED)
+            self.__currentStatusLabel.setText(STATUS_PREAMBLE + STOPPED)
+            
+            # Stop Threading
+            if (self.EXECUTION_THREAD != None):
+                self.EXECUTION_THREAD.join()
+                
             self.__redrawMode()
             
     def __redrawMode(self):

@@ -1,3 +1,6 @@
+## This file is outdated, the original idea was  for this to be used when a color should
+## be selected, however the popup was a bad idea and this is now DEPRECATED
+
 from PyQt4.QtGui import QWidget, QPushButton, QLabel, QVBoxLayout, QHBoxLayout
 from PyQt4.QtCore import Qt, SIGNAL
 
