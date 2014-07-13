@@ -73,7 +73,7 @@ class ExecutionThread(threading.Thread):
         timingSequence = list()
         onTime = 0
         offTime = 0
-        while self.__running:
+        while self.__running and not self.stoprequest.isSet():
             ## Loop through each GPIO, turn it on for specified time, then off
             for ind,gpio in enumerate(gpioList):
                 timingSequence = strobePatternList[ind]
@@ -90,6 +90,7 @@ class ExecutionThread(threading.Thread):
         
         def join(self, timeout=None):
             self.__running = False
+            self.stoprequest.set()
             self.__log("JOIN")
             super(ExecutionThreadself).join(timeout)
             

@@ -9,7 +9,6 @@ from util.Log import Log
 from util.Settings import *
 from util.MyPushButton import TagPushButton, IDPushButton
 from Pattern import Pattern
-import RPi.GPIO as RasIo
 from ExecutionThread import ExecutionThread
 
 BUTTONS_PER_ROW             = 4
