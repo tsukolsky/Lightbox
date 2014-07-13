@@ -36,15 +36,12 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 
-	pinMode(pinNumber, OUTPUT);
-	digitalWrite(pinNumber,LOW);
-	if (softPwmCreate(pinNumber, intensity) == 0)
+	pinMode(0, OUTPUT);
+	digitalWrite(0,LOW);
+	softPwmCreate(0, 0, 200);
 	{
 		cout << "Started successfully!" << endl;
-	}
-	else
-	{
-		cout << "Unable to start PWM!" << endl;
+		softPwmWrite(0,180);
 	}
 	return 0;
 }
