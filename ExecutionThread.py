@@ -1,6 +1,6 @@
 import threading, Queue, os, time
 from util.Settings import GpioDict, IntensityDict
-RASPI = False
+RASPI = True
 if RASPI:
     import RPi.GPIO as RasIo
 
@@ -70,7 +70,7 @@ class ExecutionThread(threading.Thread):
         configurationString += "\n\n=======================================================================\n"
         self.__log(configurationString)
         self.__running = True
-        while self.__running:
+        while True:
             ## Loop through each GPIO, turn it on for specified time, then off
             for ind,gpio in enumerate(gpioList):
                 timingSequence = strobePatternList[ind]
@@ -84,15 +84,4 @@ class ExecutionThread(threading.Thread):
                         if len(timingSequence) != 1 or offTime != 0:
                             gpio.stop()
                             time.sleep(offTime)
-            print "Loop"
-        print "Someone set it"
-        
-    def join(self, timeout=None):
-        self.__log("JOIN CALLED")
-        #self.stoprequest.set()
-        self.__running = False
-        time.sleep(.5)
-        if RASPI:
-            RasIo.cleanup()
-        super(ExecutionThread,self).join(timeout)
         
