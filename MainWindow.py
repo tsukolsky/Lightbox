@@ -406,6 +406,7 @@ class MainWindow(QMainWindow):
             self.__redrawMode()
             
     def __exit(self):
+        self.__handleStop()
         self.close()
         
     ### DISABLED-----------------------------------------------------

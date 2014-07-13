@@ -75,17 +75,31 @@ class ExecutionThread(threading.Thread):
         
         while not self.stoprequest.isSet():
             ## Loop through each GPIO, turn it on for specified time, then off
-            for ind,pin in enumerate(wiringGpioPinList):
-                timingSequence = strobePatternList[ind]
-                for timingPair in timingSequence:
-                    onTime = timingPair[0]
-                    offTime = timingPair[1]            
-                    if RASPI:
-                        os.system("sudo /bin/pwm %d %d &"%(pin, strobeIntensity))
-                    time.sleep(onTime)
-                    if RASPI:
-                        os.system("sudo pkill pwm")
-                    time.sleep(offTime)
+            if len(wiringGpioPinList) == 1:
+                sequence = strobePatternList[0]
+                if len(sequence) == 1:
+                    # Continuos pattern
+                    pin = wiringGpioPinList[0]
+                    os.system("sudo /bin/pwm %d %d &"%(pin, strobeIntensity))
+                    while not self.stoprequest.isSet():
+                        time.sleep(.5)
+                    os.system("sudo pkill pwm")
+            else:
+                for ind,pin in enumerate(wiringGpioPinList):
+                    timingSequence = strobePatternList[ind]
+                    for timingPair in timingSequence:
+                        onTime = timingPair[0]
+                        offTime = timingPair[1]            
+                        if RASPI:
+                            os.system("sudo /bin/pwm %d %d &"%(pin, strobeIntensity))
+                        time.sleep(onTime)
+                        if RASPI:
+                            os.system("sudo pkill pwm")
+                        if (offTime != 0):
+                            time.sleep(offTime-.025)
+                        
+                        if self.stoprequest.isSet():
+                            break
                     
 #            for ind,gpio in enumerate(gpioList):
 #                timingSequence = strobePatternList[ind]
@@ -104,6 +118,7 @@ class ExecutionThread(threading.Thread):
         self.__log("JOIN CALLED")
         self.stoprequest.set()
         time.sleep(.5)
+        os.system("sudo pkill pwm")
 #        if RASPI:
 #            RasIo.cleanup()
         super(ExecutionThread,self).join(timeout)
