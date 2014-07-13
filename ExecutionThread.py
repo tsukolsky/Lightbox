@@ -18,7 +18,6 @@ class ExecutionThread(threading.Thread):
         self.pattern = pattern
         self.stoprequest = threading.Event()
         self.intensity = intensity
-        self.__running = False
     
     def __log(self,message):
         self.log.LOG(self.CALLING_CLASS, message)
@@ -69,11 +68,8 @@ class ExecutionThread(threading.Thread):
             
         configurationString += "\n\n=======================================================================\n"
         self.__log(configurationString)
-        self.__running = True
-        timingSequence = list()
-        onTime = 0
-        offTime = 0
-        while self.__running and not self.stoprequest.isSet():
+        
+        while not self.stoprequest.isSet():
             ## Loop through each GPIO, turn it on for specified time, then off
             for ind,gpio in enumerate(gpioList):
                 timingSequence = strobePatternList[ind]
@@ -87,10 +83,14 @@ class ExecutionThread(threading.Thread):
                         if len(timingSequence) != 1 or offTime != 0:
                             gpio.stop()
                             time.sleep(offTime)
+            print "Loop"
+        print "Someone set it"
         
-        def join(self, timeout=None):
-            self.__running = False
-            self.stoprequest.set()
-            self.__log("JOIN")
-            super(ExecutionThreadself).join(timeout)
-            
+    def join(self, timeout=None):
+        self.__log("JOIN CALLED")
+        self.stoprequest.set()
+        time.sleep(.5)
+        if RASPI:
+            RasIo.cleanup()
+        super(ExecutionThread,self).join(timeout)
+        
