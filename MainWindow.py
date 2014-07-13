@@ -598,7 +598,7 @@ class MainWindow(QMainWindow):
         
         self.__defaultButtonLayout = QVBoxLayout()
         self.__selectedPatternLayout = QVBoxLayout()
-        self.__intensityLayout = QVBoxLayout()
+        self.__intensitySelectLayout = QVBoxLayout()
         self.__presetButtonLayout = QVBoxLayout()
         
         self.__intensitySelectLayout.addStretch(1)
