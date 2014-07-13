@@ -37,7 +37,7 @@ class ExecutionThread(threading.Thread):
         ## Case 3: Not sure
     
         gpioPinList = list()
-#        gpioList = list()
+        gpioList = list()
         strobePatternList = list()
         wiringGpioPinList = list()
         
