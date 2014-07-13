@@ -4,8 +4,14 @@
 #include <stdlib.h>
 #include <wiringPi.h>
 #include <softPwm.h>
+#include <signal.h>
 
 using namespace std;
+
+#define NUM_OF_PINS 7;
+
+//unsigned int literalPins[NUM_OF_PINS] 	= {7,11,12,13,15,16,18};
+unsigned int wiringPiPins[NUM_OF_PINS]  = {7,0,1,2,3,4,5};
 
 int main(int argc, char* argv[])
 {
@@ -19,6 +25,9 @@ int main(int argc, char* argv[])
 		cout << "Input args are " << argv[1] << " and " << argv[2] << endl;
 		//return  0;
 	}
+
+	(void)signal(SIGINT,control_event);
+	(void)signal(SIGQUIT,control_event);
 
 	// Get the pin number
 	int pinNumber;
@@ -36,12 +45,33 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 
-	pinMode(0, OUTPUT);
-	digitalWrite(0,LOW);
-	softPwmCreate(0, 0, 200);
+
+	int i = 0, numOfPins = NUM_OF_PINS;
+	for (i = 0; i < numOfPins; i++)
 	{
-		cout << "Started successfully!" << endl;
-		softPwmWrite(0,180);
+		pinMode(0, OUTPUT);
+		digitalWrite(0,LOW);
+		softPwmCreate(0, 0, 200);
+		softPwmWrite(0,10);
 	}
+	while(1)
+	{
+		delay(10);
+	}
+
 	return 0;
+}
+
+void control_event(int sig)
+{
+	cout << "Exit called" << endl;
+	int i = 0;
+	int numOfPins = NUM_OF_PINS;
+	for (i = 0; i < numOfPins; i++)
+	{
+		softPwmWrite(wiringPiPins[i],0);
+		digitalWrite(wiringPiPins[i],LOW);
+	}
+	delay(100);
+	exit(0);
 }
