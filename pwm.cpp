@@ -10,7 +10,10 @@ using namespace std;
 
 //#define TEST
 
-#define NUM_OF_PINS 7
+#define PERIOD_MS		10
+#define ONE_MS			10
+#define RANGE_120HZ		8*ONE_MS
+#define NUM_OF_PINS 	7
 
 int main(int argc, char* argv[])
 {
@@ -52,14 +55,19 @@ int main(int argc, char* argv[])
 	{
 		pinMode(wiringPiPins[i], OUTPUT);
 		digitalWrite(wiringPiPins[i],LOW);
-		softPwmCreate(wiringPiPins[i], 0, intensity);
-		softPwmWrite(wiringPiPins[i],intensity);
+		softPwmCreate(wiringPiPins[i], 0, 10);
+		softPwmWrite(wiringPiPins[i],10);
 	}
 #else
 	pinMode(pinNumber, OUTPUT);
 	digitalWrite(pinNumber, LOW);
-	softPwmCreate(pinNumber, 0, intensity);
-	softPwmWrite(pinNumber, intensity);
+	softPwmCreate(pinNumber, 0, RANGE_120HZ);
+
+	float intensityPerc = intensity/100.0;
+	int newIntensity = RANGE_120HZ*intensityPerc;
+	cout << "Intensity Percentage is " << intensityPerc << ", final intensity is " << newIntensity << endl;
+
+	softPwmWrite(pinNumber, newIntensity);
 #endif
 	while(1)
 	{
