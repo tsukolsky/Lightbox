@@ -1,5 +1,5 @@
 import threading, Queue, os, time
-from util.Settings import GpioDict, IntensityDict, GpioWiringDict
+from util.Settings import GpioDict, IntensityDict, WireGpioDict
 RASPI = True
 #if RASPI:
 #    import RPi.GPIO as RasIo
@@ -47,7 +47,7 @@ class ExecutionThread(threading.Thread):
                 strobePattern = pwmDict[index]
                 
                 pin = GpioDict[color]
-                wiringPin = WiringGpioDict[color]
+                wiringPin = WireGpioDict[color]
                 
 #                if RASPI:
 #                    RasIo.setup(pin, RasIo.OUT)
