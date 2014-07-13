@@ -84,7 +84,7 @@ class ExecutionThread(threading.Thread):
                         os.system("sudo /bin/pwm %d %d &"%(pin, strobeIntensity))
                     time.sleep(onTime)
                     if RASPI:
-                        os.system("sudo pkill -9 pwm")
+                        os.system("sudo pkill pwm")
                     time.sleep(offTime)
                     
 #            for ind,gpio in enumerate(gpioList):

@@ -35,6 +35,7 @@ int main(int argc, char* argv[])
 	(void)signal(SIGQUIT,control_event);
 	(void)signal(SIGKILL,control_event);
 	(void)signal(SIGSTOP,control_event);
+	(void)signal(SIGTERM,control_event);
 
 	// Get the pin number
 	int pinNumber;
