@@ -15,6 +15,8 @@ using namespace std;
 #define RANGE_120HZ		8*ONE_MS
 #define NUM_OF_PINS 	7
 
+void control_event(int sig);
+
 int main(int argc, char* argv[])
 {
 	const unsigned int wiringPiPins[NUM_OF_PINS]  = {7,0,1,2,3,4,5};
@@ -59,15 +61,15 @@ int main(int argc, char* argv[])
 		softPwmWrite(wiringPiPins[i],10);
 	}
 #else
-	pinMode(pinNumber, OUTPUT);
-	digitalWrite(pinNumber, LOW);
-	softPwmCreate(pinNumber, 0, RANGE_120HZ);
+	pinMode(wiringPiPins[pinNumber], OUTPUT);
+	digitalWrite(wiringPiPins[pinNumber], LOW);
+	softPwmCreate(wiringPiPins[pinNumber], 0, RANGE_120HZ);
 
 	float intensityPerc = intensity/100.0;
 	int newIntensity = RANGE_120HZ*intensityPerc;
 	cout << "Intensity Percentage is " << intensityPerc << ", final intensity is " << newIntensity << endl;
 
-	softPwmWrite(pinNumber, newIntensity);
+	softPwmWrite(wiringPiPins[pinNumber], newIntensity);
 #endif
 	while(1)
 	{
