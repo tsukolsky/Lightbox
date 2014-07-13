@@ -81,7 +81,7 @@ class ExecutionThread(threading.Thread):
                     onTime = timingPair[0]
                     offTime = timingPair[1]            
                     if RASPI:
-                        os.system("sudo /bin/pwm %d %d"%(pin, strobeIntensity))
+                        os.system("sudo /bin/pwm %d %d &"%(pin, strobeIntensity))
                     time.sleep(onTime)
                     if RASPI:
                         os.system("sudo pkill -9 pwm")
@@ -104,7 +104,7 @@ class ExecutionThread(threading.Thread):
         self.__log("JOIN CALLED")
         self.stoprequest.set()
         time.sleep(.5)
-        if RASPI:
-            RasIo.cleanup()
+#        if RASPI:
+#            RasIo.cleanup()
         super(ExecutionThread,self).join(timeout)
         

@@ -33,6 +33,8 @@ int main(int argc, char* argv[])
 
 	(void)signal(SIGINT,control_event);
 	(void)signal(SIGQUIT,control_event);
+	(void)signal(SIGKILL,control_event);
+	(void)signal(SIGSTOP,control_event);
 
 	// Get the pin number
 	int pinNumber;
