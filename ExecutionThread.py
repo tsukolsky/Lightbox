@@ -77,29 +77,30 @@ class ExecutionThread(threading.Thread):
             ## Loop through each GPIO, turn it on for specified time, then off
             if len(wiringGpioPinList) == 1:
                 sequence = strobePatternList[0]
-                if len(sequence) == 1:
+                if len(sequence) == 1 and sequence[0][1] == 0:
                     # Continuos pattern
                     pin = wiringGpioPinList[0]
                     os.system("sudo /bin/pwm %d %d &"%(pin, strobeIntensity))
                     while not self.stoprequest.isSet():
                         time.sleep(.5)
                     os.system("sudo pkill pwm")
-            else:
-                for ind,pin in enumerate(wiringGpioPinList):
-                    timingSequence = strobePatternList[ind]
-                    for timingPair in timingSequence:
-                        onTime = timingPair[0]
-                        offTime = timingPair[1]            
-                        if RASPI:
-                            os.system("sudo /bin/pwm %d %d &"%(pin, strobeIntensity))
-                        time.sleep(onTime)
-                        if RASPI:
-                            os.system("sudo pkill pwm")
-                        if (offTime != 0):
-                            time.sleep(offTime-.025)
-                        
-                        if self.stoprequest.isSet():
-                            break
+                    break
+            
+            for ind,pin in enumerate(wiringGpioPinList):
+                timingSequence = strobePatternList[ind]
+                for timingPair in timingSequence:
+                    onTime = timingPair[0]
+                    offTime = timingPair[1]            
+                    if RASPI:
+                        os.system("sudo /bin/pwm %d %d &"%(pin, strobeIntensity))
+                    time.sleep(onTime-.03)
+                    if RASPI:
+                        os.system("sudo pkill pwm")
+                    if (offTime != 0):
+                        time.sleep(offTime-.05)
+                    
+                    if self.stoprequest.isSet():
+                        break
                     
 #            for ind,gpio in enumerate(gpioList):
 #                timingSequence = strobePatternList[ind]
