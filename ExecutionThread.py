@@ -1,8 +1,8 @@
 import threading, Queue, os, time
-from util.Settings import GpioDict, IntensityDict
+from util.Settings import GpioDict, IntensityDict, GpioWiringDict
 RASPI = True
-if RASPI:
-    import RPi.GPIO as RasIo
+#if RASPI:
+#    import RPi.GPIO as RasIo
 
 DEFAULT_FREQUENCY = 120
 
@@ -29,15 +29,15 @@ class ExecutionThread(threading.Thread):
         pwmDict = self.pattern.GetPwmSequenceDict()
         strobeIntensity = IntensityDict[self.intensity]
         
-        if RASPI:
-            RasIo.setmode(RasIo.BOARD)
+#       if RASPI:
+#           RasIo.setmode(RasIo.BOARD)
         # Put together the GPIO list ------------------------------
         ## Case 1: pwmDict length == number of colors
         ## Case 2: pwmDict length > number of colors --> Make # GPIOs with the same pin to simulate # colors
         ## Case 3: Not sure
     
         gpioPinList = list()
-        gpioList = list()
+#        gpioList = list()
         strobePatternList = list()
         wiringGpioPinList = list()
         
@@ -49,12 +49,12 @@ class ExecutionThread(threading.Thread):
                 pin = GpioDict[color]
                 wiringPin = WiringGpioDict[color]
                 
-                if RASPI:
-                    RasIo.setup(pin, RasIo.OUT)
-                    gpio = RasIo.PWM(pin,DEFAULT_FREQUENCY)
-                    gpioList += [gpio]
-                else:
-                    gpioList += [0] 
+#                if RASPI:
+#                    RasIo.setup(pin, RasIo.OUT)
+#                    gpio = RasIo.PWM(pin,DEFAULT_FREQUENCY)
+#                    gpioList += [gpio]
+#                else:
+                gpioList += [0] 
                        
                 gpioPinList += [pin]
                 wiringGpioPinList += [wiringPin]
