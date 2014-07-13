@@ -39,6 +39,7 @@ class ExecutionThread(threading.Thread):
         gpioPinList = list()
         gpioList = list()
         strobePatternList = list()
+        wiringGpioPinList = list()
         
         if (len(colorList) == len(pwmDict)):
             for color in colorList:
@@ -46,6 +47,8 @@ class ExecutionThread(threading.Thread):
                 strobePattern = pwmDict[index]
                 
                 pin = GpioDict[color]
+                wiringPin = WiringGpioDict[color]
+                
                 if RASPI:
                     RasIo.setup(pin, RasIo.OUT)
                     gpio = RasIo.PWM(pin,DEFAULT_FREQUENCY)
@@ -54,6 +57,7 @@ class ExecutionThread(threading.Thread):
                     gpioList += [0] 
                        
                 gpioPinList += [pin]
+                wiringGpioPinList += [wiringPin]
                 strobePatternList += [strobePattern]
         else:     
             self.__log("Invalid configuration")
@@ -71,18 +75,30 @@ class ExecutionThread(threading.Thread):
         
         while not self.stoprequest.isSet():
             ## Loop through each GPIO, turn it on for specified time, then off
-            for ind,gpio in enumerate(gpioList):
+            for ind,pin in enumerate(wiringGpioPinList):
                 timingSequence = strobePatternList[ind]
                 for timingPair in timingSequence:
                     onTime = timingPair[0]
-                    offTime = timingPair[1]
+                    offTime = timingPair[1]            
                     if RASPI:
-                        gpio.start(strobeIntensity)
+                        os.system("sudo /bin/pwm %d %d"%(pin, strobeIntensity))
                     time.sleep(onTime)
                     if RASPI:
-                        if len(timingSequence) != 1 or offTime != 0:
-                            gpio.stop()
-                            time.sleep(offTime)
+                        os.system("sudo pkill -9 pwm")
+                    time.sleep(offTime)
+                    
+#            for ind,gpio in enumerate(gpioList):
+#                timingSequence = strobePatternList[ind]
+#                for timingPair in timingSequence:
+#                    onTime = timingPair[0]
+#                    offTime = timingPair[1]
+#                    if RASPI:
+#                        gpio.start(strobeIntensity)
+#                    time.sleep(onTime)
+#                    if RASPI:
+#                        if len(timingSequence) != 1 or offTime != 0:
+#                            gpio.stop()
+#                            time.sleep(offTime)
                     
     def join(self, timeout=None):
         self.__log("JOIN CALLED")

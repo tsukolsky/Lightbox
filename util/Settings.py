@@ -13,6 +13,15 @@ GpioDict["Blue"]        = 15
 GpioDict["White"]       = 16
 GpioDict["Yellow"]      = 18
 
+WireGpioDict = dict()
+WireGpioDict["Red"]         = 0
+WireGpioDict["Red-Orange"]  = 1
+WireGpioDict["Cyan"]        = 2
+WireGpioDict["Green"]       = 3
+WireGpioDict["Blue"]        = 4
+WireGpioDict["White"]       = 5
+WireGpioDict["Yellow"]      = 6
+
 Intensities = [400, 800, 1200, 1600, 2000, 2400, 2800, 3200, 3600, 4000]
 
 IntensityDict = dict()

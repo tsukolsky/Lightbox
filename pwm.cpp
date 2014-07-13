@@ -8,13 +8,13 @@
 
 using namespace std;
 
-#define NUM_OF_PINS 7;
+//#define TEST
 
-//unsigned int literalPins[NUM_OF_PINS] 	= {7,11,12,13,15,16,18};
-unsigned int wiringPiPins[NUM_OF_PINS]  = {7,0,1,2,3,4,5};
+#define NUM_OF_PINS 7
 
 int main(int argc, char* argv[])
 {
+	const unsigned int wiringPiPins[NUM_OF_PINS]  = {7,0,1,2,3,4,5};
 	if (argc != 3)
 	{
 		cout << "Too few input arguments, need pin number and duty cycle" << endl;
@@ -46,14 +46,21 @@ int main(int argc, char* argv[])
 	}
 
 
+#ifdef TEST
 	int i = 0, numOfPins = NUM_OF_PINS;
 	for (i = 0; i < numOfPins; i++)
 	{
-		pinMode(0, OUTPUT);
-		digitalWrite(0,LOW);
-		softPwmCreate(0, 0, 200);
-		softPwmWrite(0,10);
+		pinMode(wiringPiPins[i], OUTPUT);
+		digitalWrite(wiringPiPins[i],LOW);
+		softPwmCreate(wiringPiPins[i], 0, intensity);
+		softPwmWrite(wiringPiPins[i],intensity);
 	}
+#else
+	pinMode(pinNumber, OUTPUT);
+	digitalWrite(pinNumber, LOW);
+	softPwmCreate(pinNumber, 0, intensity);
+	softPwmWrite(pinNumber, intensity);
+#endif
 	while(1)
 	{
 		delay(10);
@@ -67,6 +74,8 @@ void control_event(int sig)
 	cout << "Exit called" << endl;
 	int i = 0;
 	int numOfPins = NUM_OF_PINS;
+	const unsigned int wiringPiPins[NUM_OF_PINS]  = {7,0,1,2,3,4,5};
+
 	for (i = 0; i < numOfPins; i++)
 	{
 		softPwmWrite(wiringPiPins[i],0);
