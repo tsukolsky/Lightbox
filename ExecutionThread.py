@@ -83,7 +83,9 @@ class ExecutionThread(threading.Thread):
                         if len(timingSequence) != 1 or offTime != 0:
                             gpio.stop()
                             time.sleep(offTime)
-                    
+            print "Loop"
+        print "Someone set it"
+        
     def join(self, timeout=None):
         self.__log("JOIN CALLED")
         self.stoprequest.set()
