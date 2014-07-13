@@ -85,7 +85,7 @@ pattern_four.append(True)
 pattern_four.append([ColorsByIndex[Colors.Empty]])
 pattern_four.append(1)
 tmpDict = dict()
-tmpDict[0] = [(.125, .125), (.125, .125), (.125, .125), (.375, .125), (.375, .125), (.375, .125), (.125, .125), (.125, .125), (.125, .125)]
+tmpDict[0] = [(.125, .125), (.125, .125), (.125, .125), (.375, .125), (.375, .125), (.375, .125), (.125, .125), (.125, .125), (.125, .875)]
 pattern_four.append(tmpDict)
 DEFAULT_PATTERNS.append(pattern_four)
 

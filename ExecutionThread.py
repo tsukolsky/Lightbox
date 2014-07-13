@@ -80,8 +80,9 @@ class ExecutionThread(threading.Thread):
                         gpio.start(strobeIntensity)
                     time.sleep(onTime)
                     if RASPI:
-                        gpio.stop()
-                    time.sleep(offTime)
+                        if len(timingSequence) != 1 or offTime != 0:
+                            gpio.stop()
+                            time.sleep(offTime)
                     
     def join(self, timeout=None):
         self.__log("JOIN CALLED")
