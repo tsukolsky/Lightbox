@@ -1,4 +1,4 @@
-import threading, Queue, os, time
+import os, time
 from util.Settings import GpioDict, IntensityDict
 RASPI = False
 if RASPI:
@@ -9,22 +9,20 @@ DEFAULT_FREQUENCY = 120
 TIME_TO_LIGHT_OFFSET    = 0
 TIME_TO_WAIT_OFFSET     = 1
 
-class ExecutionThread(threading.Thread):
+class BlinkingDaemon():
     def __init__(self, pattern, intensity, log):
-        super(ExecutionThread,self).__init__()
         self.log = log
-        self.CALLING_CLASS = "ExecutionThread"
-        self.__log("Setting up Execution Thread")
+        self.CALLING_CLASS = "BlinkingDaemon"
+        self.__log("Setting up Blinking Daemon")
         self.pattern = pattern
-        self.stoprequest = threading.Event()
+        self.__run = False
         self.intensity = intensity
-        self.__running = False
     
     def __log(self,message):
         self.log.LOG(self.CALLING_CLASS, message)
         
-    def run(self):
-        self.__log("Starting the thread")
+    def Run(self):
+        self.__log("Starting the daemon")
         numOfGpios = self.pattern.GetRequiredColors()
         colorList = self.pattern.GetColorList()
         pwmDict = self.pattern.GetPwmSequenceDict()
@@ -58,7 +56,8 @@ class ExecutionThread(threading.Thread):
                 strobePatternList += [strobePattern]
         else:     
             self.__log("Invalid configuration")
-            self.join()
+            self.__running = False
+            return
             
         configurationString = "\n======================= PWM Configuration ============================\n"
         for ind, gpio in enumerate(gpioList):
@@ -84,15 +83,9 @@ class ExecutionThread(threading.Thread):
                         if len(timingSequence) != 1 or offTime != 0:
                             gpio.stop()
                             time.sleep(offTime)
-            print "Loop"
-        print "Someone set it"
-        
-    def join(self, timeout=None):
-        self.__log("JOIN CALLED")
-        #self.stoprequest.set()
+                    
+    def Halt(self):
         self.__running = False
-        time.sleep(.5)
-        if RASPI:
-            RasIo.cleanup()
-        super(ExecutionThread,self).join(timeout)
+        self.__log("Halt Called.")
+        
         

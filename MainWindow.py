@@ -9,6 +9,7 @@ from util.Log import Log
 from util.Settings import *
 from util.MyPushButton import TagPushButton, IDPushButton
 from Pattern import Pattern
+#from BlinkingDaemon import BlinkingDaemon
 from ExecutionThread import ExecutionThread
 
 BUTTONS_PER_ROW             = 4
@@ -69,6 +70,7 @@ class MainWindow(QMainWindow):
         self.__currentIntensity = 4000  
         self.__loadedPattern = None
         self.__CACHED_PRESET = None
+        self.DAEMON = None
         
         # Add Menu Bard
         self.__menu = self.__createMenu()
@@ -368,9 +370,9 @@ class MainWindow(QMainWindow):
         self.__Log("START")
         if (self.__selectedPattern != None):
             if self.__running:
-                if (self.EXECUTION_THREAD != None):
-                    self.EXECUTION_THREAD.join()
-                    time.sleep(.75)
+                if (self.DAEMON != None):
+                    self.DAEMON.join()
+                    time.sleep(1)
                     
             if self.__selectedPattern.CanStart():
                 self.__Log("STARTING STARTING STARTING")
@@ -379,16 +381,16 @@ class MainWindow(QMainWindow):
                 self.__currentPatternLabel.setText(PATTERN_PREAMBLE + self.__loadedPattern.GetName())
                 self.__currentStatusLabel.setText(STATUS_PREAMBLE + RUNNING)
                 # Start Threading
-                self.EXECUTION_THREAD = ExecutionThread(self.__loadedPattern,self.__currentIntensity, self.__log)
-                self.EXECUTION_THREAD.start()
-                time.sleep(.75)   # Sleep to make sure that the other thread gets what it needs
+                self.DAEMON = ExecutionThread(self.__loadedPattern,self.__currentIntensity, self.__log)
+                self.DAEMON.start()
+                time.sleep(1)   # Sleep to make sure that the other thread gets what it needs
                 self.__drawPatternButtons()
-            elif self.__loadedPattern != None and self.__mode == PATTERN_SELECT_MODE and self.EXECUTION_THREAD != None:
+            elif self.__loadedPattern != None and self.__mode == PATTERN_SELECT_MODE and self.DAEMON != None:
                 self.__currentPatternLabel.setText(PATTERN_PREAMBLE + self.__loadedPattern.GetName())
                 self.__currentStatusLabel.setText(STATUS_PREAMBLE + RUNNING)
-                self.EXECUTION_THREAD = ExecutionThread(self.__loadedPattern,self.__currentIntensity, self.__log)
-                self.EXECUTION_THREAD.start()
-                time.sleep(.75)
+                self.DAEMON = ExecutionThread(self.__loadedPattern,self.__currentIntensity, self.__log)
+                self.DAEMON.start()
+                time.sleep(1)
             
     def __handleStop(self):
         self.__Log("STOP")
@@ -399,9 +401,9 @@ class MainWindow(QMainWindow):
             self.__currentStatusLabel.setText(STATUS_PREAMBLE + STOPPED)
             
             # Stop Threading
-            if (self.EXECUTION_THREAD != None):
-                self.EXECUTION_THREAD.join()
-                time.sleep(.75)
+            if (self.DAEMON != None):
+                self.DAEMON.join()
+                time.sleep(1)
                 
             self.__redrawMode()
             
