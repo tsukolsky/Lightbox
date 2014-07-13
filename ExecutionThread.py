@@ -70,6 +70,9 @@ class ExecutionThread(threading.Thread):
         configurationString += "\n\n=======================================================================\n"
         self.__log(configurationString)
         self.__running = True
+        timingSequence = list()
+        onTime = 0
+        offTime = 0
         while self.__running:
             ## Loop through each GPIO, turn it on for specified time, then off
             for ind,gpio in enumerate(gpioList):
