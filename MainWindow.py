@@ -39,7 +39,7 @@ RUNNING                     = "Running"
 PRESET_TAG                  = "Preset Patterns"
 
 class MainWindow(QMainWindow):
-    FILE_MENU = "&File"
+    FILE_MENU = "&Shutdown"
     EXIT_MENU = "E&xit"
     ADD_MENU = "Add &Pattern"
     DELETE_MENU = "&Delete"
@@ -109,8 +109,8 @@ class MainWindow(QMainWindow):
         self.StartButton = QPushButton("Start")
         self.__setFont(self.StartButton, CONTROL_BUTTON_FONT_SIZE)
         self.StartButton.setMinimumSize(STST_BUTTON_WIDTH,STST_BUTTON_HEIGHT)
-        startIcon = QIcon("icons/Start.png")
-        stopIcon = QIcon("icons/Stop.png")
+        startIcon = QIcon("/home/pi/Desktop/Lightbox/icons/Start.png")
+        stopIcon = QIcon("/home/pi/Desktop/Lightbox/icons/Stop.png")
         self.StartButton.setIcon(startIcon)
         self.StopButton = QPushButton("Stop")
         self.__setFont(self.StopButton, CONTROL_BUTTON_FONT_SIZE)
@@ -167,7 +167,7 @@ class MainWindow(QMainWindow):
             fileMenu.addAction(deletePatternAction)
             
         exitAction = QAction(menu)
-        exitAction.setText(MainWindow.EXIT_MENU)
+        exitAction.setText(MainWindow.FILE_MENU)
         exitAction.triggered.connect(self.__exit)
         
         fileMenu.addAction(exitAction)
@@ -370,7 +370,7 @@ class MainWindow(QMainWindow):
             if self.__running:
                 if (self.EXECUTION_THREAD != None):
                     self.EXECUTION_THREAD.join()
-                    time.sleep(.75)
+                    time.sleep(.5)
                     
             if self.__selectedPattern.CanStart():
                 self.__Log("STARTING STARTING STARTING")
@@ -381,14 +381,14 @@ class MainWindow(QMainWindow):
                 # Start Threading
                 self.EXECUTION_THREAD = ExecutionThread(self.__loadedPattern,self.__currentIntensity, self.__log)
                 self.EXECUTION_THREAD.start()
-                time.sleep(.75)   # Sleep to make sure that the other thread gets what it needs
+                time.sleep(.5)   # Sleep to make sure that the other thread gets what it needs
                 self.__drawPatternButtons()
             elif self.__loadedPattern != None and self.__mode == PATTERN_SELECT_MODE and self.EXECUTION_THREAD != None:
                 self.__currentPatternLabel.setText(PATTERN_PREAMBLE + self.__loadedPattern.GetName())
                 self.__currentStatusLabel.setText(STATUS_PREAMBLE + RUNNING)
                 self.EXECUTION_THREAD = ExecutionThread(self.__loadedPattern,self.__currentIntensity, self.__log)
                 self.EXECUTION_THREAD.start()
-                time.sleep(.75)
+                time.sleep(.5)
             
     def __handleStop(self):
         self.__Log("STOP")
@@ -401,12 +401,13 @@ class MainWindow(QMainWindow):
             # Stop Threading
             if (self.EXECUTION_THREAD != None):
                 self.EXECUTION_THREAD.join()
-                time.sleep(.75)
+                time.sleep(.5)
                 
             self.__redrawMode()
             
     def __exit(self):
         self.__handleStop()
+        #os.system("sudo shutdown -h 0")
         self.close()
         
     ### DISABLED-----------------------------------------------------
