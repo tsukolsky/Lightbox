@@ -1,8 +1,6 @@
 import threading, Queue, os, time
 from util.Settings import GpioDict, IntensityDict, WireGpioDict
 RASPI = True
-#if RASPI:
-#    import RPi.GPIO as RasIo
 
 DEFAULT_FREQUENCY = 120
 
@@ -28,16 +26,8 @@ class ExecutionThread(threading.Thread):
         colorList = self.pattern.GetColorList()
         pwmDict = self.pattern.GetPwmSequenceDict()
         strobeIntensity = IntensityDict[self.intensity]
-        
-#       if RASPI:
-#           RasIo.setmode(RasIo.BOARD)
-        # Put together the GPIO list ------------------------------
-        ## Case 1: pwmDict length == number of colors
-        ## Case 2: pwmDict length > number of colors --> Make # GPIOs with the same pin to simulate # colors
-        ## Case 3: Not sure
     
         gpioPinList = list()
-        gpioList = list()
         strobePatternList = list()
         wiringGpioPinList = list()
         
@@ -48,13 +38,6 @@ class ExecutionThread(threading.Thread):
                 
                 pin = GpioDict[color]
                 wiringPin = WireGpioDict[color]
-                
-#                if RASPI:
-#                    RasIo.setup(pin, RasIo.OUT)
-#                    gpio = RasIo.PWM(pin,DEFAULT_FREQUENCY)
-#                    gpioList += [gpio]
-#                else:
-                gpioList += [0] 
                        
                 gpioPinList += [pin]
                 wiringGpioPinList += [wiringPin]
@@ -64,8 +47,7 @@ class ExecutionThread(threading.Thread):
             self.join()
             
         configurationString = "\n======================= PWM Configuration ============================\n"
-        for ind, gpio in enumerate(gpioList):
-            tmpPin = gpioPinList[ind]
+        for ind, tmpPin in enumerate(gpioPinList):
             tmpPattern = strobePatternList[ind]
             tmpColor = colorList[ind]
             configurationString += "\n\tGPIO %d: Color- %s, Pin- %d, Brightness- %d, %d, Pattern- %s"%(ind, tmpColor, tmpPin, self.intensity, strobeIntensity, str(tmpPattern))
@@ -120,7 +102,5 @@ class ExecutionThread(threading.Thread):
         self.stoprequest.set()
         time.sleep(.5)
         os.system("sudo pkill pwm")
-#        if RASPI:
-#            RasIo.cleanup()
         super(ExecutionThread,self).join(timeout)
         

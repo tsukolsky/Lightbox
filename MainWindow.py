@@ -10,6 +10,7 @@ from util.Settings import *
 from util.MyPushButton import TagPushButton, IDPushButton
 from Pattern import Pattern
 from ExecutionThread import ExecutionThread
+from PresetManager import PresetManager
 
 BUTTONS_PER_ROW             = 4
 PATTERN_BUTTON_FONT_SIZE    = 12
@@ -81,11 +82,15 @@ class MainWindow(QMainWindow):
         self.__buttons = list()
         self.__savedPresets = list()
         
+        self.__presetManager = PresetManager(self.__log)
+        
         self.__defaultButtonLayout = QVBoxLayout()
         self.__selectedPatternLayout = QVBoxLayout()
         self.__intensitySelectLayout = QVBoxLayout()
         self.__presetButtonLayout = QVBoxLayout()
         self.__makeDefaultButtons()
+        
+        self.__importPresetsFromFile()
         
         # Connect TagPushButton signals
         self.connect(self, SIGNAL("tagPushButtonClicked(PyQt_PyObject)"), self._tagButtonClicked)
@@ -200,6 +205,9 @@ class MainWindow(QMainWindow):
        
        self.__drawPatternButtons()
     
+    def __importPresetsFromFile(self):
+        self.__savedPresets = self.__presetManager.GetPresetPatterns()
+    
     ## Clear Layouts ------------------------------------------------------------------
     def __clearLayout(self, layout):
         if layout is not None:
@@ -286,24 +294,26 @@ class MainWindow(QMainWindow):
     def __colorSelected(self, colorTag):
         self.__Log("Got Color Selected: %s, setting index %d"%(colorTag,self.__currentColorSelection))
         presetColorList = list()
-        for aPreset in self.__savedPresets:
-            self.__Log("Preset Colors:%s"%(",".join(aPreset.GetColorList())))
-            newList = list()
-            for color in aPreset.GetColorList():
-                for presetColor in ColorsByIndex:
-                    if presetColor == color:
-                        newList += [presetColor]
-                        break
-            presetColorList += [newList]
-            self.__Log("Preset Colors:%s"%(",".join(newList)))                    
-            
-            #presetColorList += [aPreset.GetColorList()]    
+        if (self.__savedPresets != None):
+            for aPreset in self.__savedPresets:
+                self.__Log("Preset Colors:%s"%(",".join(aPreset.GetColorList())))
+                newList = list()
+                for color in aPreset.GetColorList():
+                    for presetColor in ColorsByIndex:
+                        if presetColor == color:
+                            newList += [presetColor]
+                            break
+                presetColorList += [newList]
+                self.__Log("Preset Colors:%s"%(",".join(newList)))                    
+                
+                #presetColorList += [aPreset.GetColorList()]    
         self.__selectedPattern.SetColor(self.__currentColorSelection,colorTag)
-        for ind,aPreset in enumerate(self.__savedPresets):
-            self.__Log("Colors:  %s"%(",".join(presetColorList[ind])))
-            aPreset.SetColorList(presetColorList[ind])
-            self.__Log("Preset Colors:%s"%(",".join(aPreset.GetColorList())))
-            
+        if self.__savedPresets != None:
+            for ind,aPreset in enumerate(self.__savedPresets):
+                self.__Log("Colors:  %s"%(",".join(presetColorList[ind])))
+                aPreset.SetColorList(presetColorList[ind])
+                self.__Log("Preset Colors:%s"%(",".join(aPreset.GetColorList())))
+                
         self.__drawPatternSettings(self.__selectedPattern) 
         
     def __savePatternAsPreset(self):
@@ -331,6 +341,7 @@ class MainWindow(QMainWindow):
                 self.__savedPresets += [newPattern]
                 self.__CACHED_PRESET = None
                 self.__Log("Saved  Pattern.")
+                self.__presetManager.SavePresetPattern(newPattern)
             else:
                 self.__Log("Must Delete Pattern.")
                 self.__lastMode = self.__mode
@@ -425,6 +436,7 @@ class MainWindow(QMainWindow):
     def __deletePresetPattern(self):
         self.__Log("Delete Preset Pattern")
         self.__savedPresets.remove(self.__presetPatternForDeleting)
+        self.__presetManager.DeletePresetPattern(self.__presetPatternForDeleting)
         
     def __setFont(self, object, size):
         font = QFont(object.font())

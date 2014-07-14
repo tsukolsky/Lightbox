@@ -175,7 +175,7 @@ pattern_ten.append(tmpDict)
 DEFAULT_PATTERNS.append(pattern_ten)
 
 pattern_eleven = list()
-pattern_eleven.append("                 Fixed                ")
+pattern_eleven.append("Fixed")
 pattern_eleven.append("Continous Signal")
 pattern_eleven.append(True)
 pattern_eleven.append([ColorsByIndex[Colors.Empty]])

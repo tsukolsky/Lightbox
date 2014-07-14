@@ -9,7 +9,7 @@ if __name__ == "__main__":
 	app = QApplication(sys.argv)
 	app.setStyle('plastique')
 	
-	debugging = False
+	debugging = True
 	mainLog = Log(debugging)
 	mainWindow = MainWindow(mainLog)
 	mainWindow.show()
