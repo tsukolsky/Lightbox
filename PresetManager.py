@@ -1,7 +1,6 @@
 import os, time
 from Pattern import Pattern
-from util.Settings import  DEFAULT_PATTERNS, pIndex, Colors, ColorsByIndex
-RASPI = True
+from util.Settings import  DEFAULT_PATTERNS, pIndex, Colors, ColorsByIndex, RASPI
 PRESET_FILE = None
 if RASPI:
     PRESET_FILE = "/home/pi/Desktop/Lightbox/saved_presets.txt"

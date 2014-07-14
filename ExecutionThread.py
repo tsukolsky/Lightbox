@@ -1,6 +1,5 @@
 import threading, Queue, os, time
-from util.Settings import GpioDict, IntensityDict, WireGpioDict
-RASPI = True
+from util.Settings import GpioDict, IntensityDict, WireGpioDict, RASPI
 
 DEFAULT_FREQUENCY = 120
 

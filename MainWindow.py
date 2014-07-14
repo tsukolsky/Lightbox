@@ -418,7 +418,8 @@ class MainWindow(QMainWindow):
             
     def __exit(self):
         self.__handleStop()
-        #os.system("sudo shutdown -h 0")
+        if RASPI:
+            os.system("sudo shutdown -h 0")
         self.close()
         
     ### DISABLED-----------------------------------------------------
