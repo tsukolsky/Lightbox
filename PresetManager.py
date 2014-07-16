@@ -99,5 +99,5 @@ class PresetManager():
         if os.path.exists(PRESET_FILE):
             return True
         else:
-            self.__log("File doesn't exist, nothign to get")
+            self.__log("File doesn't exist, nothing to get")
             return False

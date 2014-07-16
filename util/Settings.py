@@ -1,5 +1,10 @@
 from util.Enum import Enum
+import platform
+
 RASPI = True
+if platform.dist()[0] == "Ubuntu":
+    RASPI = False
+
 pIndex = Enum(["Name", "Description", "Default", "ColorList","RequiredColors","PWM"])
 Colors = Enum(["Red", "Red-Orange", "Cyan", "Green", "Blue", "White", "Yellow","Empty"])
 ColorsByIndex = ["Red", "Red-Orange", "Cyan", "Green", "Blue", "White", "Yellow","Empty"]
@@ -83,7 +88,7 @@ pattern_three.append(True)
 pattern_three.append([ColorsByIndex[Colors.Empty]])
 pattern_three.append(1)
 tmpDict = dict()
-tmpDict[0] = [(.063, .063)]
+tmpDict[0] = [(.083, .083)]
 pattern_three.append(tmpDict)
 DEFAULT_PATTERNS.append(pattern_three)
 
@@ -94,7 +99,7 @@ pattern_four.append(True)
 pattern_four.append([ColorsByIndex[Colors.Empty]])
 pattern_four.append(1)
 tmpDict = dict()
-tmpDict[0] = [(.125, .125), (.125, .125), (.125, .125), (.375, .125), (.375, .125), (.375, .125), (.125, .125), (.125, .125), (.125, .875)]
+tmpDict[0] = [(.125, .125), (.125, .125), (.125, .125), (.375, .125), (.375, .125), (.375, .125), (.125, .125), (.125, .125), (.125, .300)]
 pattern_four.append(tmpDict)
 DEFAULT_PATTERNS.append(pattern_four)
 
@@ -107,9 +112,9 @@ pattern_five.append(1)
 tmpDict = dict()
 tmpDict[0] = [(.25, .25), (.25, .25), (.25, .25), (.25, .25), (.25, .25), \
               (.125, .125), (.125, .125), (.125, .125), (.125, .125), (.125, .125), (.125, .125), (.125, .125), (.125, .125), \
-              (.063, .063), (.063, .063), (.063, .063), (.063, .063), (.063, .063), (.063, .063), (.063, .063), \
-              (.063, .063), (.063, .063), (.063, .063), (.063, .063), (.063, .063), (.063, .063), (.063, .063), \
-              (.063, .063)]
+              (.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .083), \
+              (.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .083), \
+              (.083, .083)]
 pattern_five.append(tmpDict)
 DEFAULT_PATTERNS.append(pattern_five)
 
@@ -122,9 +127,9 @@ pattern_six.append(3)
 tmpDict = dict()
 tmpDict[0] = [(.25, .25), (.25, .25), (.25, .25), (.25, .25), (.25, .25)]
 tmpDict[1] = [(.125, .125), (.125, .125), (.125, .125), (.125, .125), (.125, .125), (.125, .125), (.125, .125), (.125, .125)]
-tmpDict[2] = [(.063, .063), (.063, .063), (.063, .063), (.063, .063), (.063, .063), (.063, .063), (.063, .063), \
-              (.063, .063), (.063, .063), (.063, .063), (.063, .063), (.063, .063), (.063, .063), (.063, .063), \
-              (.063, .063)]
+tmpDict[2] = [(.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .083), \
+              (.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .083), \
+              (.083, .083)]
 pattern_six.append(tmpDict)
 DEFAULT_PATTERNS.append(pattern_six)
 

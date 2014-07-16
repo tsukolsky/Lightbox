@@ -83,23 +83,34 @@ class ExecutionThread(threading.Thread):
                     if self.stoprequest.isSet():
                         break
                     
-#            for ind,gpio in enumerate(gpioList):
-#                timingSequence = strobePatternList[ind]
-#                for timingPair in timingSequence:
-#                    onTime = timingPair[0]
-#                    offTime = timingPair[1]
-#                    if RASPI:
-#                        gpio.start(strobeIntensity)
-#                    time.sleep(onTime)
-#                    if RASPI:
-#                        if len(timingSequence) != 1 or offTime != 0:
-#                            gpio.stop()
-#                            time.sleep(offTime)
-                    
+##########################################################################
+### This code causes a virtual memory leak and will crash the thread.    #
+### The virtual memory allocated by gpio.start() is never released       #
+### and therefore increments indefinately until all memory is consumed.  #
+### Looking in the C Code of the RPi.GPIO project, the issue is          #
+### dealloc() is never called. See the source code for more info.        #
+### This code is kept here to show a more basic overview of what is      #
+### happening.                                                           #
+##########################################################################
+#            for ind,gpio in enumerate(gpioList):                        #
+#                timingSequence = strobePatternList[ind]                 #
+#                for timingPair in timingSequence:                       #
+#                    onTime = timingPair[0]                              #
+#                    offTime = timingPair[1]                             #
+#                    if RASPI:                                           #
+#                        gpio.start(strobeIntensity)                     #
+#                    time.sleep(onTime)                                  #
+#                    if RASPI:                                           #
+#                        if len(timingSequence) != 1 or offTime != 0:    #
+#                            gpio.stop()                                 #
+#                            time.sleep(offTime)                         #
+##########################################################################
+
     def join(self, timeout=None):
         self.__log("JOIN CALLED")
         self.stoprequest.set()
-        time.sleep(.5)
-        os.system("sudo pkill pwm")
+        time.sleep(.25)
+        if RASPI:
+            os.system("sudo pkill pwm")
         super(ExecutionThread,self).join(timeout)
         

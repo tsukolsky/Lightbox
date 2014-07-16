@@ -40,8 +40,9 @@ RUNNING                     = "Running"
 PRESET_TAG                  = "Preset Patterns"
 
 class MainWindow(QMainWindow):
-    FILE_MENU = "&Shutdown"
+    SHUTDOWN_MENU = "&Shutdown"
     EXIT_MENU = "E&xit"
+    SOFT_EXIT = "&Soft Exit"
     ADD_MENU = "Add &Pattern"
     DELETE_MENU = "&Delete"
     VERSION_MENU = "&Version"
@@ -156,8 +157,8 @@ class MainWindow(QMainWindow):
     def __createMenu(self):
         menu = self.menuBar()
         
-        ## File Menu -----------------------------------------
-        fileMenu = menu.addMenu(MainWindow.FILE_MENU)
+        ## Shutdown Menu -----------------------------------------
+        shutdownMenu = menu.addMenu(MainWindow.SHUTDOWN_MENU)
         
         if ADD_PATTERN_ENABLED:
             newPatternAction = QAction(menu)
@@ -168,14 +169,23 @@ class MainWindow(QMainWindow):
             deletePatternAction.setText(MainWindow.DELETE_MENU)
             deletePatternAction.triggered.connect(self.__deletePattern)
             
-            fileMenu.addAction(newPatternAction)
-            fileMenu.addAction(deletePatternAction)
+            shutdownMenu.addAction(newPatternAction)
+            shutdownMenu.addAction(deletePatternAction)
             
-        exitAction = QAction(menu)
-        exitAction.setText(MainWindow.FILE_MENU)
-        exitAction.triggered.connect(self.__exit)
+        shutdownAction = QAction(menu)
+        shutdownAction.setText(MainWindow.SHUTDOWN_MENU)
+        shutdownAction.triggered.connect(self.__shutdown)
         
-        fileMenu.addAction(exitAction)
+        shutdownMenu.addAction(shutdownAction)
+        
+        ## Soft Exit Menu ------------------------------------
+        softExitMenu = menu.addMenu(MainWindow.EXIT_MENU)
+        
+        softExitAction = QAction(menu)
+        softExitAction.setText(MainWindow.SOFT_EXIT)
+        softExitAction.triggered.connect(self.__exit)
+        
+        softExitMenu.addAction(softExitAction)
         
         ## About Menu ----------------------------------------
         aboutMenu = menu.addMenu(MainWindow.ABOUT_MENU)
@@ -417,6 +427,10 @@ class MainWindow(QMainWindow):
             self.__redrawMode()
             
     def __exit(self):
+        self.__handleStop()
+        self.close()
+        
+    def __shutdown(self):
         self.__handleStop()
         if RASPI:
             os.system("sudo shutdown -h 0")
