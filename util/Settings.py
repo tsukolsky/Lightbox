@@ -5,6 +5,9 @@ RASPI = True
 if platform.dist()[0] == "Ubuntu":
     RASPI = False
 
+ADD_PATTERN_ENABLED     = False
+PHONE_HOME_ENABLED      = False
+
 pIndex = Enum(["Name", "Description", "Default", "ColorList","RequiredColors","PWM"])
 Colors = Enum(["Red", "Red-Orange", "Cyan", "Green", "Blue", "White", "Yellow","Empty"])
 ColorsByIndex = ["Red", "Red-Orange", "Cyan", "Green", "Blue", "White", "Yellow","Empty"]

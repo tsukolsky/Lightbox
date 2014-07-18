@@ -25,7 +25,6 @@ STST_BUTTON_HEIGHT          = 30
 STST_BUTTON_WIDTH           = 70
 INTENSITY_BUTTON_MIN_HEIGHT = 50
 INTENSITY_BUTTON_MIN_WIDTH  = 100
-ADD_PATTERN_ENABLED         = False
 PATTERN_PREAMBLE            = "Current Pattern: "
 NO_PATTERN_SELECTED         = "None"
 PATTERN_EDIT_MODE           = "EDIT"
@@ -195,12 +194,13 @@ class MainWindow(QMainWindow):
         softExitAction.setText(MainWindow.SOFT_EXIT)
         softExitAction.triggered.connect(self.__exit)
         
-        phoneHomeAction = QAction(menu)
-        phoneHomeAction.setText(MainWindow.PHONE_HOME)
-        softExitAction.triggered.connect(self.__phoneHome)
-        
         helpMenu.addAction(softExitAction)
-        helpMenu.addAction(phoneHomeAction)
+        
+        if PHONE_HOME_ENABLED:
+            phoneHomeAction = QAction(menu)
+            phoneHomeAction.setText(MainWindow.PHONE_HOME)
+            softExitAction.triggered.connect(self.__phoneHome)
+            helpMenu.addAction(phoneHomeAction)
         
     def __showAbout(self):
         ret = QMessageBox.information(self,"Version Info", "Release: July 10, 2014")
