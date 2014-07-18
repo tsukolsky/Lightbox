@@ -10,7 +10,7 @@
 using namespace std;
 
 //#define TEST1
-#define TEST2
+//#define TEST2
 
 #define FREQ_100HZ		100
 #define FREQ_120HZ		83
@@ -250,7 +250,7 @@ int main(int argc, char* argv[])
 		cout << "Unable to setup wiring pi!" << endl;
 		return 0;
 	}
-	return 0;
+	
 #ifdef TEST1
 	int i = 0, numOfPins = NUM_OF_PINS;
 	for (i = 0; i < numOfPins; i++)
