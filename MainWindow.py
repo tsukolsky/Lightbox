@@ -42,8 +42,9 @@ PRESET_TAG                  = "Preset Patterns"
 
 class MainWindow(QMainWindow):
     SHUTDOWN_MENU = "&Shutdown"
-    EXIT_MENU = "E&xit"
+    HELP_MENU = "&Help"
     SOFT_EXIT = "&Soft Exit"
+    PHONE_HOME = "Pho&ne Home"
     ADD_MENU = "Add &Pattern"
     DELETE_MENU = "&Delete"
     VERSION_MENU = "&Version"
@@ -159,6 +160,15 @@ class MainWindow(QMainWindow):
     def __createMenu(self):
         menu = self.menuBar()
         
+        ## About Menu ----------------------------------------
+        aboutMenu = menu.addMenu(MainWindow.ABOUT_MENU)
+        
+        versionAction = QAction(menu)
+        versionAction.setText(MainWindow.VERSION_MENU)
+        versionAction.triggered.connect(self.__showAbout)
+        
+        aboutMenu.addAction(versionAction)
+        
         ## Shutdown Menu -----------------------------------------
         shutdownMenu = menu.addMenu(MainWindow.SHUTDOWN_MENU)
         
@@ -181,22 +191,19 @@ class MainWindow(QMainWindow):
         shutdownMenu.addAction(shutdownAction)
         
         ## Soft Exit Menu ------------------------------------
-        softExitMenu = menu.addMenu(MainWindow.EXIT_MENU)
+        helpMenu = menu.addMenu(MainWindow.HELP_MENU)
         
         softExitAction = QAction(menu)
         softExitAction.setText(MainWindow.SOFT_EXIT)
         softExitAction.triggered.connect(self.__exit)
         
-        softExitMenu.addAction(softExitAction)
+        helpMenu.addAction(softExitAction)
         
-        ## About Menu ----------------------------------------
-        aboutMenu = menu.addMenu(MainWindow.ABOUT_MENU)
-        
-        versionAction = QAction(menu)
-        versionAction.setText(MainWindow.VERSION_MENU)
-        versionAction.triggered.connect(self.__showAbout)
-        
-        aboutMenu.addAction(versionAction)
+        if PHONE_HOME_ENABLED:
+            phoneHomeAction = QAction(menu)
+            phoneHomeAction.setText(MainWindow.PHONE_HOME)
+            softExitAction.triggered.connect(self.__phoneHome)
+            helpMenu.addAction(phoneHomeAction)
         
     def __showAbout(self):
         ret = QMessageBox.information(self,"Version Info", "Release: July 10, 2014")
