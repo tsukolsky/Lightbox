@@ -254,8 +254,6 @@ class MainWindow(QMainWindow):
         elif self.__mode == INTENSITY_SELECT_MODE:
             # Get the intensity selected
             self.__intensitySelected(ID)
-        elif self.__mode == PATTERN_PRESET_DELETE_MODE:
-            self.__presetPatternSelectedForDelete(ID)
         elif self.__mode == PATTERN_PRESET_SELECT_MODE:
             self.__presetPatternSelectedForStart(ID)
             #self.__drawPatternButtons()
@@ -274,18 +272,12 @@ class MainWindow(QMainWindow):
                 self.__savePatternAsPreset()
             else:
                 self.__colorSelected(buttonTag)
-        elif self.__mode == PATTERN_PRESET_DELETE_MODE:
-            if buttonTag == "Cancel":
-                self.__drawPatternSettings(self.__selectedPattern,False)
-            elif buttonTag == "Delete":
-                self.__deletePresetPattern()
-                if self.__CACHED_PRESET != None:
-                    self.__savePatternAsPreset()
-                    self.__drawPatternSettings(self.__selectedPattern, False)
         elif self.__mode == PATTERN_PRESET_SELECT_MODE:
             if buttonTag == "Back":
                 if self.__loadedPatternBeforePreset != None and self.__presetPatternForDeleting != None:
+                    self.__Log("Both are not none")
                     if self.__loadedPatternBeforePreset.GetName() != self.__presetPatternForDeleting.GetName() and self.__loadedPatternBeforePreset.GetColorString() != self.__presetPatternForDeleting.GetColorString():
+                        self.__Log("Setting preset back to the one it was before")
                         self.__loadedPattern = self.__loadedPatternBeforePreset
                         self.__loadedPatternBeforePreset = None
                 self.__presetPatternForDeleting = None
@@ -295,28 +287,43 @@ class MainWindow(QMainWindow):
                     self.__currentPatternLabel.setText(PATTERN_PREAMBLE + self.__loadedPattern.GetName() + ' ' + self.__loadedPattern.GetColorString())
             elif buttonTag == "Delete":
                 self.__presetPatternForDeleting = self.__loadedPattern
+                if self.__loadedPatternBeforePreset != None and self.__presetPatternForDeleting != None:
+                    self.__Log("Both are not none")
+                    if self.__loadedPatternBeforePreset.GetName() == self.__presetPatternForDeleting.GetName() and self.__loadedPatternBeforePreset.GetColorString() == self.__presetPatternForDeleting.GetColorString():
+                        self.__Log("Deleting the currently loaded pattern")
+                        self.__loadedPatternBeforePreset = None
+                        self.__loadedPattern = None
+                        self.__currentPatternLabel.setText(PATTERN_PREAMBLE + EMPTY_PATTERN_SELECTED)
+                    else:
+                        self.__Log("Setting the loaded pattern back to what it should be before delete occured")
+                        self.__loadedPattern = self.__loadedPatternBeforePreset
+                        self.__currentPatternLabel.setText(PATTERN_PREAMBLE + self.__loadedPattern.GetName()+ ' ' + self.__loadedPattern.GetColorString())
+                elif self.__loadedPatternBeforePreset == None:
+                    self.__currentPatternLabel.setText(PATTERN_PREAMBLE + EMPTY_PATTERN_SELECTED)
+                    self.__loadedPattern = None
+                else:
+                    self.__loadedPattern = self.__loadedPatternBeforePreset
+                    self.__currentPatternLabel.setText(PATTERN_PREAMBLE + self.__loadedPattern.GetName()+ ' ' + self.__loadedPattern.GetColorString())
+                    
                 self.__deletePresetPattern()
-                self.__loadedPattern = None
-                self.__drawPresetPatternsForSelection()
+                if len(self.__savedPresets) > 0:
+                    self.__drawPresetPatternsForSelection()
+                else:
+                    self.__drawPatternButtons()
             else:
                 self.__Log("Unknown button")
         else:
             self.__Log("Bad Mode")
         
     def __presetPatternSelectedForStart(self,ID):
+        self.__Log("Preset pattern selected with ID %d"%ID)
         if ID >= 0 and ID < len(self.__savedPresets):
             self.__selectedPattern = self.__savedPresets[ID]
             self.__currentPatternLabel.setText(PATTERN_PREAMBLE + self.__selectedPattern.GetName()  + ' ' + self.__selectedPattern.GetColorString())
             self.__loadedPattern = self.__selectedPattern
             self.__presetDeleteButton.setEnabled(True)
             self.StartButton.setEnabled(True)
-            return   
-            
-    def __presetPatternSelectedForDelete(self, ID):
-        if ID >= 0 and ID < len(self.__savedPresets):
-            self.__presetPatternForDeleting = self.__savedPresets[ID]
-            self.__Log("FOUND PRESET PATTERN")
-            return         
+            return      
         
     def __intensitySelected(self, ID):
         ## NOTE: INtensity does not change until the STOP->START  is pressed.
@@ -348,7 +355,12 @@ class MainWindow(QMainWindow):
                 self.__Log("Colors:  %s"%(",".join(presetColorList[ind])))
                 aPreset.SetColorList(presetColorList[ind])
                 self.__Log("Preset Colors:%s"%(",".join(aPreset.GetColorList())))
-                
+        
+        ## Check to see if this is now valid
+        if self.__selectedPattern.CanStart():
+            self.__loadedPattern = self.__selectedPattern
+            self.StartButton.setEnabled(True)
+                    
         self.__drawPatternSettings(self.__selectedPattern) 
         
     def __savePatternAsPreset(self):
@@ -410,29 +422,17 @@ class MainWindow(QMainWindow):
     
     def __handleStart(self):
         self.__Log("START")
-        if (self.__selectedPattern != None or self.__loadedPattern != None):
+        if self.__loadedPattern != None:
             if self.__running:
                 if (self.EXECUTION_THREAD != None):
                     self.EXECUTION_THREAD.join()
                     time.sleep(.5)
-                    
-            if self.__selectedPattern != None and self.__selectedPattern.CanStart():
-                self.__Log("STARTING STARTING STARTING")
-                self.__running = True
-                self.__loadedPattern = self.__selectedPattern
-                #self.__currentPatternLabel.setText(PATTERN_PREAMBLE + self.__loadedPattern.GetName())
-                self.__currentStatusLabel.setText(STATUS_PREAMBLE + RUNNING)
-                # Start Threading
-                self.EXECUTION_THREAD = ExecutionThread(self.__loadedPattern,self.__currentIntensity, self.__log)
-                self.EXECUTION_THREAD.start()
-                time.sleep(.5)   # Sleep to make sure that the other thread gets what it needs
-                self.__drawPatternButtons()
-            elif self.__loadedPattern != None and self.__mode == PATTERN_SELECT_MODE:# and self.EXECUTION_THREAD != None:
-                #self.__currentPatternLabel.setText(PATTERN_PREAMBLE + self.__loadedPattern.GetName())
-                self.__currentStatusLabel.setText(STATUS_PREAMBLE + RUNNING)
-                self.EXECUTION_THREAD = ExecutionThread(self.__loadedPattern,self.__currentIntensity, self.__log)
-                self.EXECUTION_THREAD.start()
-                time.sleep(.5)            
+            
+            self.__running = True
+            self.__currentStatusLabel.setText(STATUS_PREAMBLE + RUNNING)
+            self.EXECUTION_THREAD = ExecutionThread(self.__loadedPattern,self.__currentIntensity, self.__log)
+            self.EXECUTION_THREAD.start()
+            time.sleep(.5)            
             
     def __handleStop(self):
         self.__Log("STOP")
@@ -591,7 +591,6 @@ class MainWindow(QMainWindow):
         self.__mode = PATTERN_EDIT_MODE
         if pattern.CanStart():
             self.__currentPatternLabel.setText(PATTERN_PREAMBLE + pattern.GetName()  + ' ' + pattern.GetColorString())
-            self.__loadedPattern = pattern
         else:
             self.__currentPatternLabel.setText(PATTERN_PREAMBLE + EMPTY_PATTERN_SELECTED)
         
@@ -740,21 +739,6 @@ class MainWindow(QMainWindow):
             
         self.__mainLayout.addLayout(self.__intensitySelectLayout)
                 
-    def __drawPresetPatternsForDelete(self):
-        self.__mode = PATTERN_PRESET_DELETE_MODE
-        self.__createPresetPatternLayout()
-        controlLayout = QHBoxLayout()
-        controlLayout.addStretch(1)
-        self.__presetDeleteButton = TagPushButton(self,"Delete")
-        self.__setFont(self.__presetDeleteButton,CONTROL_BUTTON_FONT_SIZE)
-        cancelButton = TagPushButton(self,"Cancel")
-        self.__setFont(cancelButton, CONTROL_BUTTON_FONT_SIZE)
-        controlLayout.addWidget(cancelButton)
-        self.__presetButtonLayout.addStretch(1)
-        self.__presetButtonLayout.addLayout(controlLayout)
-        
-        self.__mainLayout.addLayout(self.__presetButtonLayout)
-        
     def __drawPresetPatternsForSelection(self):
         if len(self.__savedPresets) > 0:
             self.__mode = PATTERN_PRESET_SELECT_MODE
@@ -773,8 +757,7 @@ class MainWindow(QMainWindow):
             self.__presetButtonLayout.addStretch(1)
             self.__presetButtonLayout.addLayout(controlLayout)
             self.__mainLayout.addLayout(self.__presetButtonLayout)
-        else:
-            self.__drawPatternButtons()
+
         self.__selectedPattern = None
         self.__startValid()
          
