@@ -376,7 +376,8 @@ class MainWindow(QMainWindow):
                 self.__savedPresets += [newPattern]
                 self.__CACHED_PRESET = None
                 self.__Log("Saved  Pattern.")
-                self.__presetManager.SavePresetPattern(newPattern)  
+                self.__presetManager.SavePresetPattern(newPattern)
+                self.__drawPatternSettings(self.__selectedPattern, False, True)  
         
     def __patternEditControlPressed(self,buttonTag):
         if buttonTag == "Back":
@@ -586,7 +587,7 @@ class MainWindow(QMainWindow):
    
 
     ## Draw Settings Window -------------------------------------------------------  
-    def __drawPatternSettings(self, pattern, withColors=False):
+    def __drawPatternSettings(self, pattern, withColors=False, withSavedPresetTag=False):
         self.__mode = PATTERN_EDIT_MODE
         if pattern.CanStart():
             self.__currentPatternLabel.setText(PATTERN_PREAMBLE + pattern.GetName()  + ' ' + pattern.GetColorString())
@@ -660,8 +661,12 @@ class MainWindow(QMainWindow):
         self.__setFont(saveButton,CONTROL_BUTTON_FONT_SIZE)
         self.__setFont(backButton,CONTROL_BUTTON_FONT_SIZE)
         
-        ## Check to see if the saveAsPreset is allowed based on CanStart()
-        
+	## If we just saved a preset, show the QLabel that we did.
+        if (withSavedPresetTag):
+            presetSavedLabel = QLabel("Successfully saved as Preset!")
+            self.__setFont(presetSavedLabel, CONTROL_LABEL_FONT_SIZE)        
+            controlButtonLayout.addWidget(presetSavedLabel)
+
         ## Check to see if adding a preset is okay?
         if len(self.__savedPresets) >= MAX_NUM_PRESETS:
             saveButton.setEnabled(False)
