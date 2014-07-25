@@ -5,6 +5,8 @@ RASPI = True
 if platform.dist()[0] == "Ubuntu":
     RASPI = False
 
+MAX_NUM_PRESETS = 16
+
 pIndex = Enum(["Name", "Description", "Default", "ColorList","RequiredColors","PWM"])
 Colors = Enum(["Red", "Red-Orange", "Cyan", "Green", "Blue", "White", "Yellow","Empty"])
 ColorsByIndex = ["Red", "Red-Orange", "Cyan", "Green", "Blue", "White", "Yellow","Empty"]

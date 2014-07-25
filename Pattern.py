@@ -97,6 +97,9 @@ class Pattern():
     def GetColorList(self):
         return self.__colorList
     
+    def GetColorString(self):
+        return ",".join(self.__colorList)
+    
     def SetColorList(self,colorList):
         self.__colorList = colorList
     
