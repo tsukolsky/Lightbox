@@ -5,8 +5,10 @@ PRESET_FILE = None
 if RASPI:
     PRESET_FILE = "/home/pi/Desktop/Lightbox/saved_presets.txt"
 else:
-    PRESET_FILE = "/home/todd/workspace/LightPad/saved_presets.txt"
-
+    PRESET_FILE = "/home/tsukolsky/eclipse_workspace/Lightbox/saved_presets.txt"
+    if not os.path.exists("/home/tsukolsky/eclipse_workspace/Lightbox/"):
+        PRESET_FILE = "/home/todd/workspace/LightPad/saved_presets.txt"
+        
 class PresetManager():
     def __init__(self, log = None):
         self.log = log
