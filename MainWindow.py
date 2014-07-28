@@ -15,14 +15,14 @@ from PresetManager import PresetManager
 BUTTONS_PER_ROW             = 4
 PATTERN_BUTTON_FONT_SIZE    = 12
 PATTERN_LABEL_FONT_SIZE     = 8
-PAGE_INFO_LABEL_SIZE     = 24
+PAGE_INFO_LABEL_SIZE        = 24
 CONTROL_LABEL_FONT_SIZE     = 12
 CONTROL_BUTTON_FONT_SIZE    = 12
 INTENSITY_BUTTON_FONT_SIZE  = 20
 MIN_BUTTON_HEIGHT           = 40
 MIN_BUTTON_WIDTH            = 150
 CONTROL_BUTTON_HEIGHT       = 30
-CONTROL_BUTTON_WIDTH           = 70
+CONTROL_BUTTON_WIDTH        = 70
 INTENSITY_BUTTON_MIN_HEIGHT = 50
 INTENSITY_BUTTON_MIN_WIDTH  = 100
 PATTERN_PREAMBLE            = "Current Pattern: "
@@ -38,6 +38,8 @@ STATUS_PREAMBLE             = "Status: "
 STOPPED                     = "Stopped"
 RUNNING                     = "Running"
 PRESET_TAG                  = "Preset Patterns"
+PRESET_EXISTS               = "Preset alread exists!"
+PRESET_SAVED                = "Saved pattern as preset!"
 
 class MainWindow(QMainWindow):
     SHUTDOWN_MENU = "&Shutdown"
@@ -382,13 +384,14 @@ class MainWindow(QMainWindow):
                 for pattern in self.__savedPresets:
                     if pattern.GetName() == newPattern.GetName():
                         if pattern.GetColorList() == newPattern.GetColorList():
+                            self.__drawPatternSettings(self.__selectedPattern, False, True, PRESET_EXISTS)
                             return
                 
                 self.__savedPresets += [newPattern]
                 self.__CACHED_PRESET = None
                 self.__Log("Saved  Pattern.")
                 self.__presetManager.SavePresetPattern(newPattern)
-                self.__drawPatternSettings(self.__selectedPattern, False, True)  
+                self.__drawPatternSettings(self.__selectedPattern, False, True, PRESET_SAVED)  
         
     def __patternEditControlPressed(self,buttonTag):
         if buttonTag == "Back":
@@ -590,7 +593,7 @@ class MainWindow(QMainWindow):
    
 
     ## Draw Settings Window -------------------------------------------------------  
-    def __drawPatternSettings(self, pattern, withColors=False, withSavedPresetTag=False):
+    def __drawPatternSettings(self, pattern, withColors=False, withLogMessage=False, logMessage=""):
         self.__mode = PATTERN_EDIT_MODE
         if pattern.CanStart():
             self.__currentPatternLabel.setText(PATTERN_PREAMBLE + pattern.GetName()  + ' ' + pattern.GetColorString())
@@ -665,10 +668,10 @@ class MainWindow(QMainWindow):
         self.__setFont(backButton,CONTROL_BUTTON_FONT_SIZE)
         
 	## If we just saved a preset, show the QLabel that we did.
-        if (withSavedPresetTag):
-            presetSavedLabel = QLabel("Successfully saved as Preset!")
-            self.__setFont(presetSavedLabel, CONTROL_LABEL_FONT_SIZE)        
-            controlButtonLayout.addWidget(presetSavedLabel)
+        if (withLogMessage and logMessage != ""):
+            logLabel = QLabel(logMessage)
+            self.__setFont(logLabel, CONTROL_LABEL_FONT_SIZE)        
+            controlButtonLayout.addWidget(logLabel)
 
         ## Check to see if adding a preset is okay?
         if len(self.__savedPresets) >= MAX_NUM_PRESETS:
