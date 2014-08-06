@@ -31,7 +31,7 @@ WireGpioDict["Blue"]        = 4
 WireGpioDict["White"]       = 5
 WireGpioDict["Yellow"]      = 6
 
-Intensities = [400, 800, 1200, 1600, 2000, 2400, 2800, 3200, 3600, 4000]
+Intensities = [80,100,200,400,800,1000,1600,2000,3200,4000]
 
 IntensityDict = dict()
 for intensity in Intensities:
