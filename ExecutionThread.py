@@ -1,5 +1,5 @@
 import threading, Queue, os, time
-from util.Settings import GpioDict, IntensityDict, WireGpioDict, RASPI
+from util.Settings import GpioDict, IntensityDict, WireGpioDict, RASPI, PatternDict
 
 DEFAULT_FREQUENCY = 120
 
@@ -54,35 +54,50 @@ class ExecutionThread(threading.Thread):
         configurationString += "\n\n=======================================================================\n"
         self.__log(configurationString)
         
-        while not self.stoprequest.isSet():
-            ## Loop through each GPIO, turn it on for specified time, then off
-            if len(wiringGpioPinList) == 1:
-                sequence = strobePatternList[0]
-                if len(sequence) == 1 and sequence[0][1] == 0:
-                    # Continuos pattern
-                    pin = wiringGpioPinList[0]
-                    os.system("sudo /bin/pwm %d %d &"%(pin, strobeIntensity))
-                    while not self.stoprequest.isSet():
-                        time.sleep(.5)
-                    os.system("sudo pkill pwm")
-                    break
+        pinString = ""
+        for pin in wiringGpioPinList:
+            pinString += str(pin) + " "
+        
+        for pad in range(0,3-len(wiringGpioPinList)):
+            pinString += "-1 "
             
-            for ind,pin in enumerate(wiringGpioPinList):
-                timingSequence = strobePatternList[ind]
-                for timingPair in timingSequence:
-                    onTime = timingPair[0]
-                    offTime = timingPair[1]            
-                    if RASPI:
+        pinString = pinString[:-1]
+        self.__log("Pin string: %s"%pinString)
+        executionString = "sudo /bin/pwm %s %d %d &"%(pinString, strobeIntensity, PatternDict[self.pattern.GetName()])
+        self.__log("Execution String : %s"%executionString)
+        #os.system("sudo /bin/pwm %s %d %d &"%(pinString, strobeIntensity, pattern.GetId()))
+        while not self.stoprequest.isSet():
+            time.sleep(.5)
+            if False:
+                ## Loop through each GPIO, turn it on for specified time, then off
+                if len(wiringGpioPinList) == 1:
+                    sequence = strobePatternList[0]
+                    if len(sequence) == 1 and sequence[0][1] == 0:
+                        # Continuos pattern
+                        pin = wiringGpioPinList[0]
                         os.system("sudo /bin/pwm %d %d &"%(pin, strobeIntensity))
-                    time.sleep(onTime-.03)
-                    if RASPI:
+                        while not self.stoprequest.isSet():
+                            time.sleep(.5)
                         os.system("sudo pkill pwm")
-                    if (offTime != 0):
-                        time.sleep(offTime-.05)
-                    
-                    if self.stoprequest.isSet():
                         break
-                    
+                
+                for ind,pin in enumerate(wiringGpioPinList):
+                    timingSequence = strobePatternList[ind]
+                    for timingPair in timingSequence:
+                        onTime = timingPair[0]
+                        offTime = timingPair[1]            
+                        if RASPI:
+                            os.system("sudo /bin/pwm %d %d &"%(pin, strobeIntensity))
+                        time.sleep(onTime-.03)
+                        if RASPI:
+                            os.system("sudo pkill pwm")
+                        if (offTime != 0):
+                            time.sleep(offTime-.05)
+                        
+                        if self.stoprequest.isSet():
+                            break
+                        
+        os.system("sudo pkill pwm")
 ##########################################################################
 ### This code causes a virtual memory leak and will crash the thread.    #
 ### The virtual memory allocated by gpio.start() is never released       #

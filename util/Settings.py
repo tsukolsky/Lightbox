@@ -9,7 +9,7 @@ ADD_PATTERN_ENABLED = False
 PHONE_HOME_ENABLED = False
 MAX_NUM_PRESETS = 16
 
-pIndex = Enum(["Name", "Description", "Default", "ColorList","RequiredColors","PWM"])
+pIndex = Enum(["Name", "Description", "Default", "ColorList","RequiredColors","PWM", "Id"])
 Colors = Enum(["Red", "Red-Orange", "Cyan", "Green", "Blue", "White", "Yellow","Empty"])
 ColorsByIndex = ["Red", "Red-Orange", "Cyan", "Green", "Blue", "White", "Yellow","Empty"]
 
@@ -31,6 +31,21 @@ WireGpioDict["Blue"]        = 4
 WireGpioDict["White"]       = 5
 WireGpioDict["Yellow"]      = 6
 
+PatternDict = dict()
+PatternDict["4Hz"] = 0
+PatternDict["4Hz Alternating"] = 1
+PatternDict["4Hz Group/Interrupt"] = 2
+PatternDict["4Hz Group/Alt"] = 3
+PatternDict["6Hz"] = 4
+PatternDict["SOS A1-MOD"] = 5
+PatternDict["Chirp-Up-Mod"] = 6
+PatternDict["Chirp-Up-Mod, 3-Color"] = 7
+PatternDict["2Hz 25% Duty"] = 8
+PatternDict["2Hz 50% Duty"] = 9
+PatternDict["2Hz Group/Alt"] = 10
+PatternDict["2Hz 2-Color"] = 11
+PatternDict["Fixed"] = 12
+
 Intensities = [80,100,200,400,800,1000,1600,2000,3200,4000]
 
 IntensityDict = dict()
@@ -48,6 +63,7 @@ pattern_zero.append(1)
 tmpDict = dict()
 tmpDict[0] = [(.125,.125)]    # tuple
 pattern_zero.append(tmpDict)
+pattern_zero.append(0)
 DEFAULT_PATTERNS.append(pattern_zero)
 
 pattern_one = list()
@@ -60,6 +76,7 @@ tmpDict = dict()
 tmpDict[0] = [(.125, .125)]
 tmpDict[1] = [(.125, .125)]
 pattern_one.append(tmpDict)
+pattern_one.append(1)
 DEFAULT_PATTERNS.append(pattern_one)
 
 pattern_two = list()
@@ -71,6 +88,7 @@ pattern_two.append(1)
 tmpDict = dict()
 tmpDict[0] = [(.125, .125), (.125, .125), (.125, .125), (.125, .250), (.125, .125), (.125, .125), (.125, .250)]
 pattern_two.append(tmpDict)
+pattern_two.append(2)
 DEFAULT_PATTERNS.append(pattern_two)
 
 pattern_oops = list()
@@ -83,6 +101,7 @@ tmpDict = dict()
 tmpDict[0] = [(.125, .125), (.125, .125), (.125, .125), (.125, .250)]
 tmpDict[1] = [(.125, .125), (.125, .125), (.125, .250)]
 pattern_oops.append(tmpDict)
+pattern_oops.append(3)
 DEFAULT_PATTERNS.append(pattern_oops)
 
 pattern_three = list()
@@ -94,6 +113,7 @@ pattern_three.append(1)
 tmpDict = dict()
 tmpDict[0] = [(.083, .083)]
 pattern_three.append(tmpDict)
+pattern_three.append(4)
 DEFAULT_PATTERNS.append(pattern_three)
 
 pattern_four = list()
@@ -105,6 +125,7 @@ pattern_four.append(1)
 tmpDict = dict()
 tmpDict[0] = [(.125, .125), (.125, .125), (.125, .125), (.375, .125), (.375, .125), (.375, .125), (.125, .125), (.125, .125), (.125, .300)]
 pattern_four.append(tmpDict)
+pattern_four.append(5)
 DEFAULT_PATTERNS.append(pattern_four)
 
 pattern_five = list()
@@ -120,6 +141,7 @@ tmpDict[0] = [(.25, .25), (.25, .25), (.25, .25), (.25, .25), (.25, .25), \
               (.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .083), \
               (.083, .083)]
 pattern_five.append(tmpDict)
+pattern_five.append(6)
 DEFAULT_PATTERNS.append(pattern_five)
 
 pattern_six = list()
@@ -135,6 +157,7 @@ tmpDict[2] = [(.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .08
               (.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .083), (.083, .083), \
               (.083, .083)]
 pattern_six.append(tmpDict)
+pattern_six.append(7)
 DEFAULT_PATTERNS.append(pattern_six)
 
 pattern_seven = list()
@@ -146,6 +169,7 @@ pattern_seven.append(1)
 tmpDict = dict()
 tmpDict[0] = [(.125, .375)]
 pattern_seven.append(tmpDict)
+pattern_seven.append(8)
 DEFAULT_PATTERNS.append(pattern_seven)
 
 pattern_eight = list()
@@ -157,6 +181,7 @@ pattern_eight.append(1)
 tmpDict = dict()
 tmpDict[0] = [(.250, .250)]
 pattern_eight.append(tmpDict)
+pattern_eight.append(9)
 DEFAULT_PATTERNS.append(pattern_eight)
 
 pattern_nine = list()
@@ -169,6 +194,7 @@ tmpDict = dict()
 tmpDict[0] = [(.125, .375), (.125, .375), (.125, .375), (.125, .250)]
 tmpDict[1] = [(.125, .375), (.125, .375), (.125, .250)]
 pattern_nine.append(tmpDict)
+pattern_nine.append(10)
 DEFAULT_PATTERNS.append(pattern_nine)
 
 pattern_ten = list()
@@ -181,6 +207,7 @@ tmpDict = dict()
 tmpDict[0] = [(.250, .250), (.250, .250), (.250, .250), (.250, .250)]
 tmpDict[1] = tmpDict[0]
 pattern_ten.append(tmpDict)
+pattern_ten.append(11)
 DEFAULT_PATTERNS.append(pattern_ten)
 
 pattern_eleven = list()
@@ -192,6 +219,7 @@ pattern_eleven.append(1)
 tmpDict = dict()
 tmpDict[0] = [(1.0, 0)]
 pattern_eleven.append(tmpDict)
+pattern_eleven.append(12)
 DEFAULT_PATTERNS.append(pattern_eleven)
 
 NUM_DEFAULT_PATTERNS = len(DEFAULT_PATTERNS)

@@ -9,7 +9,7 @@
 
 using namespace std;
 
-//#define TEST
+#define TEST
 
 #define PERIOD_MS		10
 #define ONE_MS			10
@@ -23,9 +23,9 @@ int main(int argc, char* argv[])
 	/* ARGV: 1->Color One, 2->Color Two, 3->Color Three, 4->Intensity, 5->Pattern	*/
 
 	const unsigned int wiringPiPins[NUM_OF_PINS]  = {7,0,1,2,3,4,5};
-	if (argc != 5)
+	if (argc != 6)
 	{
-		cout << "Too few input arguments, need three pins and duty cycle" << endl;
+		cout << "Too few input arguments, need three pins and duty cycle: " << argc << endl;
 		return 0;
 	}
 	else
