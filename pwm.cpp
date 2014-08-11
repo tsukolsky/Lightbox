@@ -5,6 +5,7 @@
 #include <wiringPi.h>
 #include <softPwm.h>
 #include <signal.h>
+#include "pwm.h"
 
 using namespace std;
 
@@ -19,15 +20,17 @@ void control_event(int sig);
 
 int main(int argc, char* argv[])
 {
+	/* ARGV: 1->Color One, 2->Color Two, 3->Color Three, 4->Intensity, 5->Pattern	*/
+
 	const unsigned int wiringPiPins[NUM_OF_PINS]  = {7,0,1,2,3,4,5};
-	if (argc != 3)
+	if (argc != 5)
 	{
-		cout << "Too few input arguments, need pin number and duty cycle" << endl;
+		cout << "Too few input arguments, need three pins and duty cycle" << endl;
 		return 0;
 	}
 	else
 	{
-		cout << "Input args are " << argv[1] << " and " << argv[2] << endl;
+		cout << "Input args are " << argv[1] << ", " << argv[2] << ", " << argv[3] << " and " << argv[4] << " and " << argv[5] << endl;
 		//return  0;
 	}
 
@@ -37,14 +40,21 @@ int main(int argc, char* argv[])
 	(void)signal(SIGSTOP,control_event);
 	(void)signal(SIGTERM,control_event);
 
-	// Get the pin number
-	int pinNumber;
-    pinNumber = atoi(argv[1]);
-	cout << "Pin number is " << pinNumber << endl;
+	// Get the colors
+	int colorOne, colorTwo, colorThree;
+	colorOne = atoi(argv[1]);
+	colorTwo = atoi(argv[2]);
+	colorThree = atoi(argv[3]);
+	cout << "Color one is " << colorOne << ", color two is " << colorTwo << ", color three is " << colorThree << endl;
+
+	// Get the pattern: argv[5],  0-12
+	int pattern;
+	pattern = atoi(argv[5]);
+	cout << "Pattern number is " << pattern << endl;
 
 	// Get the intensity
 	int intensity;
-	intensity = atoi(argv[2]);
+	intensity = atoi(argv[4]);
 	cout << "Intensity is " << intensity << endl;
 
 	if (wiringPiSetup() == -1)
