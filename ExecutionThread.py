@@ -65,39 +65,13 @@ class ExecutionThread(threading.Thread):
         self.__log("Pin string: %s"%pinString)
         executionString = "sudo /bin/pwm %s %d %d &"%(pinString, strobeIntensity, PatternDict[self.pattern.GetName()])
         self.__log("Execution String : %s"%executionString)
-        #os.system("sudo /bin/pwm %s %d %d &"%(pinString, strobeIntensity, pattern.GetId()))
+        if RASPI:
+            os.system(executionString)
         while not self.stoprequest.isSet():
             time.sleep(.5)
-            if False:
-                ## Loop through each GPIO, turn it on for specified time, then off
-                if len(wiringGpioPinList) == 1:
-                    sequence = strobePatternList[0]
-                    if len(sequence) == 1 and sequence[0][1] == 0:
-                        # Continuos pattern
-                        pin = wiringGpioPinList[0]
-                        os.system("sudo /bin/pwm %d %d &"%(pin, strobeIntensity))
-                        while not self.stoprequest.isSet():
-                            time.sleep(.5)
-                        os.system("sudo pkill pwm")
-                        break
-                
-                for ind,pin in enumerate(wiringGpioPinList):
-                    timingSequence = strobePatternList[ind]
-                    for timingPair in timingSequence:
-                        onTime = timingPair[0]
-                        offTime = timingPair[1]            
-                        if RASPI:
-                            os.system("sudo /bin/pwm %d %d &"%(pin, strobeIntensity))
-                        time.sleep(onTime-.03)
-                        if RASPI:
-                            os.system("sudo pkill pwm")
-                        if (offTime != 0):
-                            time.sleep(offTime-.05)
-                        
-                        if self.stoprequest.isSet():
-                            break
-                        
-        os.system("sudo pkill pwm")
+            
+        if RASPI:            
+            os.system("sudo pkill pwm")
 ##########################################################################
 ### This code causes a virtual memory leak and will crash the thread.    #
 ### The virtual memory allocated by gpio.start() is never released       #

@@ -107,6 +107,7 @@ class MainWindow(QMainWindow):
         
         self.__mode = PATTERN_SELECT_MODE
         self.__lastMode = self.__mode
+        self.__modeBeforeIntensity = None
 
         self.__running = False
 
@@ -507,8 +508,20 @@ class MainWindow(QMainWindow):
             self.__drawPatternSettings(self.__selectedPattern)
         elif self.__mode == PATTERN_SELECT_MODE:
             self.__drawPatternButtons()
+        elif self.__mode == PATTERN_PRESET_SELECT_MODE:
+            self.__drawPresetPatternsForSelection()
         elif self.__mode == INTENSITY_SELECT_MODE:
-            self.__drawIntensityButtons()
+            if (self.__modeBeforeIntensity != None):
+                if self.__modeBeforeIntensity == PATTERN_EDIT_MODE:
+                    self.__drawPatternSettings(self.__selectedPattern)
+                elif self.__mode == PATTERN_SELECT_MODE:
+                    self.__drawPatternButtons()
+                elif self.__mode == PATTERN_PRESET_SELECT_MODE:
+                    self.__drawPresetPatternsForSelection()
+                else:
+                    self.__drawPatternButtons()
+            else:
+                self.__drawPatternButtons()
         else:
             self.__Log("No mode to redraw")
                     
@@ -700,6 +713,7 @@ class MainWindow(QMainWindow):
         self.__drawPatternSettings(self.__selectedPattern, True)            
             
     def __drawIntensityButtons(self):
+        self.__modeBeforeIntensity = self.__mode
         self.__mode = INTENSITY_SELECT_MODE
         self.__Log("Draw intensity buttons")
         self.__clearLayout(self.__selectedPatternLayout)
