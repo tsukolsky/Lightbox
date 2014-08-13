@@ -11,7 +11,8 @@ from util.MyPushButton import TagPushButton, IDPushButton
 from util.Pattern import Pattern
 from model.ExecutionThread import ExecutionThread
 from model.PresetManager import PresetManager
-from model.TriggerManager import TriggerManager
+from model.TriggerManager import TriggerManager, FIELD_TYPE, DURATION_TRIGGER, FIELD_ACTIONTYPE, ACTIONTYPE_START, ACTIONTYPE_STOP, FIELD_DURATION, \
+                                TAG, START_DURATION_UPDATE, STOP_DURATION_UPDATE, START_TRIGGER_ACTIVATED, STOP_TRIGGER_ACTIVATED
 
 BUTTONS_PER_ROW             = 4
 PATTERN_BUTTON_FONT_SIZE    = 12
@@ -41,7 +42,10 @@ RUNNING                     = "Running"
 PRESET_TAG                  = "Preset Patterns"
 PRESET_EXISTS               = "Preset alread exists!"
 PRESET_SAVED                = "Saved pattern as preset!"
-
+NONE_STR                    = "None"
+TRIGGER_START_PREAMBLE      = "Start Delay: "
+TRIGGER_STOP_PREAMBLE       = "Stop Delay: "
+WAITING_FOR_START_TRIGGER   = "Waiting for start delay..."
 class MainWindow(QMainWindow):
     SHUTDOWN_MENU = "&Shutdown"
     HELP_MENU = "&Help"
@@ -100,6 +104,8 @@ class MainWindow(QMainWindow):
         ## Get Managers -----------------------------------------------
         self.__presetManager = PresetManager(self.__log)
         self.__triggerManager = TriggerManager(self.__log)
+        self.__triggerManager.StartEvent.subscribe(self.__handleTriggerStartEvent)
+        self.__triggerManager.StopEvent.subscribe(self.__handleTriggerStopEvent)
         
         ## Get presets ------------------------------------------------
         self.__importPresetsFromFile()
@@ -153,14 +159,38 @@ class MainWindow(QMainWindow):
         self.__setFont(self.__intensityButton, CONTROL_BUTTON_FONT_SIZE)
         self.__intensityButton.setMinimumSize(CONTROL_BUTTON_WIDTH*2, CONTROL_BUTTON_HEIGHT)
         self.__intensityButton.clicked.connect(self.__intensityButtonClicked)
-        intensityLayout = QHBoxLayout()
+        intensityLayout = QVBoxLayout()
         intensityLayout.addWidget(self.__intensityLabel)
-        intensityLayout.addStretch(1)
+        #intensityLayout.addStretch(1)
         intensityLayout.addWidget(self.__intensityButton)
 
+        ## make the Trigger Layout
+        self.__triggerStartLabel = QLabel(TRIGGER_START_PREAMBLE + NONE_STR)
+        self.__triggerStopLabel = QLabel(TRIGGER_STOP_PREAMBLE + NONE_STR)
+        self.__setFont(self.__triggerStartLabel, CONTROL_LABEL_FONT_SIZE)
+        self.__setFont(self.__triggerStopLabel, CONTROL_LABEL_FONT_SIZE)
+        self.__triggerConfigureButton = QPushButton("Configure Triggers...")
+        self.__setFont(self.__triggerConfigureButton, CONTROL_BUTTON_FONT_SIZE)
+        self.__triggerConfigureButton.setMinimumSize(CONTROL_BUTTON_WIDTH*2, CONTROL_BUTTON_HEIGHT)
+        self.__triggerConfigureButton.clicked.connect(self.__handleTriggerConfigureClicked)
+        triggerLayout = QVBoxLayout()
+        triggerLabelLayout = QHBoxLayout()
+        triggerLabelLayout.addWidget(self.__triggerStartLabel)
+        triggerLabelLayout.addStretch(1)
+        triggerLabelLayout.addWidget(self.__triggerStopLabel)
+        triggerLayout.addLayout(triggerLabelLayout)
+        triggerLayout.addWidget(self.__triggerConfigureButton)
+
+        secondRowLayout = QHBoxLayout()
+        secondRowLayout.addLayout(intensityLayout)
+        secondRowLayout.addStretch(1)
+        secondRowLayout.addLayout(triggerLayout)
+        
         infoBarLayout = QVBoxLayout()
         infoBarLayout.addLayout(currentSelectionLayout)
-        infoBarLayout.addLayout(intensityLayout)
+        infoBarLayout.addLayout(secondRowLayout)
+        
+        
         
         return infoBarLayout
         
@@ -439,7 +469,7 @@ class MainWindow(QMainWindow):
         self.__Log("Didn't find a pattern that matched tag!")
         
     ## Start clicked ---------------------------------------------------------------
-    def __handleStart(self):
+    def __handleStart(self, triggerActivated = False):
         self.__Log("START")
         if self.__loadedPattern != None:
             if self.__running:
@@ -448,51 +478,101 @@ class MainWindow(QMainWindow):
                     time.sleep(.5)
             
             self.__running = True
-            self.__currentStatusLabel.setText(STATUS_PREAMBLE + RUNNING)
-            self.EXECUTION_THREAD = ExecutionThread(self.__loadedPattern,self.__currentIntensity, self.__log)
-            self.EXECUTION_THREAD.start()
+            
+            ## This is flawed now with the trigger manager. If trigger manager has a start trigger, this should not be called
+            if not self.__triggerManager.HasStartTrigger() or triggerActivated:
+                self.__currentStatusLabel.setText(STATUS_PREAMBLE + RUNNING)
+                self.EXECUTION_THREAD = ExecutionThread(self.__loadedPattern,self.__currentIntensity, self.__log)
+                self.EXECUTION_THREAD.start()
+                self.__triggerManager.InitializeStopTriggers()
+            else:
+                self.__currentStatusLabel.setText(STATUS_PREAMBLE + WAITING_FOR_START_TRIGGER)
+                self.__triggerManager.GlobalStart()
             time.sleep(.5)            
           
     ## Stop clicked ----------------------------------------------------------------  
-    def __handleStop(self):
+    def __handleStop(self, triggerActivated = False):
         self.__Log("STOP")
         if self.__running:
             self.__running = False
             #self.__selectedPattern.ClearColors()
             #self.__currentPatternLabel.setText(PATTERN_PREAMBLE + NO_PATTERN_SELECTED)
             self.__currentStatusLabel.setText(STATUS_PREAMBLE + STOPPED)
-            
+            self.__triggerManager.GlobalStop()
             # Stop Threading
             if (self.EXECUTION_THREAD != None):
                 self.EXECUTION_THREAD.join()
                 time.sleep(.5)
                 
-            self.__redrawMode()
+            if not triggerActivated:
+                self.__redrawMode()
+    
+    ## Handle Trig
+    def __handleTriggerConfigureClicked(self):
+        self.__Log("Configure triggers!")
+        ## Make new screen (disable all buttons except stop
+        
+        ## See if they have entered a valid trigger
+        makeStartTrigger = True
+        makeStopTrigger = True
+        startDuration = 10
+        stopDuration = 10
+        if makeStartTrigger:
+            bundle = dict()
+            bundle[FIELD_DURATION] = startDuration
+            bundle[FIELD_ACTIONTYPE] = ACTIONTYPE_START
+            bundle[FIELD_TYPE] = DURATION_TRIGGER
+            triggerCreated = self.__triggerManager.CreateTrigger(bundle)
+            
+        if makeStopTrigger:
+            bundle = dict()
+            bundle[FIELD_DURATION] = stopDuration
+            bundle[FIELD_ACTIONTYPE] = ACTIONTYPE_STOP
+            bundle[FIELD_TYPE] = DURATION_TRIGGER
+            triggerCreated = self.__triggerManager.CreateTrigger(bundle)
+            
     
     ## Handle Reset Pressed for Duration Trigger -----------------------------------
-    def __handleResetDurationTrigger(self):
+    def __handleResetStartTriggers(self):
         return
     
-    ## Start Duration Trigger Handler -----------------------------------------------
-    def __handleStartDurationUpdated(self,newDuration):
-        self.__Log("Duration Trigger Returned durationUpdated! New Duration %d"%newDuration)
-        ## Update the information/status layout
-        
-    ## Start Duration Trigger Finished ----------------------------------------------
-    def __handleStartDurationTriggerCompleted(self):
-        self.__Log("Duration Trigger returned completed! Stopping Task!")
-        self.__handleStop()    
+    def __handleResetStopTriggers(self):
+        return
     
-    ## Stop Duration Trigger Handler -----------------------------------------------
-    def __handleStopDurationUpdated(self,newDuration):
-        self.__Log("Duration Trigger Returned durationUpdated! New Duration %d"%newDuration)
-        ## Update the information/status layout
-        
-    ## Stop Duration Trigger Finished ----------------------------------------------
-    def __handleStopDurationTriggerCompleted(self):
-        self.__Log("Duration Trigger returned completed! Stopping Task!")
-        self.__handleStop()
-      
+    def __handleTriggerStartEvent(self,bundle):
+        if TAG in bundle:
+            eventType = bundle[TAG]
+            if eventType == START_DURATION_UPDATE:
+                ## update the start duration value
+                if FIELD_DURATION in bundle:
+                    timeInTrigger = bundle[FIELD_DURATION]
+                    self.__Log("Update start duration value")
+                    self.__triggerStartLabel.setText(TRIGGER_START_PREAMBLE + str(timeInTrigger))
+            elif eventType == START_TRIGGER_ACTIVATED:
+                if FIELD_DURATION in bundle:
+                    timeInTrigger = bundle[FIELD_DURATION]
+                    self.__Log("Update start duration value")
+                    self.__triggerStartLabel.setText(TRIGGER_START_PREAMBLE + str(timeInTrigger)) 
+                self.__handleStart(True)
+        return
+    
+    def __handleTriggerStopEvent(self,bundle):
+        if TAG in bundle:
+            eventType = bundle[TAG]
+            if eventType == STOP_DURATION_UPDATE:
+                ## Update the stop duration value
+                self.__Log("Update stop duration value")
+                if FIELD_DURATION in bundle:
+                    timeInTrigger = bundle[FIELD_DURATION]
+                    self.__triggerStopLabel.setText(TRIGGER_STOP_PREAMBLE + str(timeInTrigger))
+            elif eventType == STOP_TRIGGER_ACTIVATED:
+                if FIELD_DURATION in bundle:
+                    timeInTrigger = bundle[FIELD_DURATION]
+                    self.__Log("Update start duration value")
+                    self.__triggerStopLabel.setText(TRIGGER_STOP_PREAMBLE + str(timeInTrigger))
+                self.__handleStop(True)
+        return
+    
     def __phoneHome(self):
         if RASPI:
             os.system("/home/pi/Desktop/Lightbox/util/phoneHome.sh &")
