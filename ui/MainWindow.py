@@ -8,9 +8,10 @@ from PyQt4.QtGui import QApplication
 from util.Log import Log
 from util.Settings import *
 from util.MyPushButton import TagPushButton, IDPushButton
-from Pattern import Pattern
-from ExecutionThread import ExecutionThread
-from PresetManager import PresetManager
+from util.Pattern import Pattern
+from model.ExecutionThread import ExecutionThread
+from model.PresetManager import PresetManager
+from model.TriggerManager import TriggerManager
 
 BUTTONS_PER_ROW             = 4
 PATTERN_BUTTON_FONT_SIZE    = 12
@@ -63,12 +64,12 @@ class MainWindow(QMainWindow):
             print "No Log File"
             self.close()
             
-        # Create main layout for window
+        # Create main layout for window ------------------------------
         mainWidget = QWidget(self)
         self.__mainLayout = QVBoxLayout(mainWidget)
         mainWidget.setLayout(self.__mainLayout)
       
-        # Selected pattern
+        ## Initialize pattern holders --------------------------------
         self.__selectedPattern = None
         self.__presetPatternForDeleting = None
         self.__currentIntensity = 4000  
@@ -80,35 +81,42 @@ class MainWindow(QMainWindow):
         # Add Menu Bard
         self.__menu = self.__createMenu()
 
-        ## Toolbar that is always there->Selected Pattern, Start, Stop, Current State Label
+        ## Create and add status layout -------------------------------
         self.__statusLayout = self.__createStatusLayout()
         self.__mainLayout.addLayout(self.__statusLayout)
         
-        self.__patterns = list()
-        self.__buttons = list()
-        self.__savedPresets = list()
-        
-        self.__presetManager = PresetManager(self.__log)
-        
+        ## Declare default layouts ------------------------------------
         self.__defaultButtonLayout = QVBoxLayout()
         self.__selectedPatternLayout = QVBoxLayout()
         self.__intensitySelectLayout = QVBoxLayout()
         self.__presetButtonLayout = QVBoxLayout()
+        
+        ## Initialize and create pattern buttons ----------------------
+        self.__patterns = list()
+        self.__buttons = list()
+        self.__savedPresets = list()
         self.__makeDefaultButtons()
         
+        ## Get Managers -----------------------------------------------
+        self.__presetManager = PresetManager(self.__log)
+        self.__triggerManager = TriggerManager(self.__log)
+        
+        ## Get presets ------------------------------------------------
         self.__importPresetsFromFile()
         
-        # Connect TagPushButton signals
+        # Connect TagPushButton signals -------------------------------
         self.connect(self, SIGNAL("tagPushButtonClicked(PyQt_PyObject)"), self._tagButtonClicked)
         self.connect(self,SIGNAL("idPushButtonClicked(PyQt_PyObject)"), self._idButtonClicked)
         
-        # Make the window knwo what is the main widget
+        # Make the window knwo what is the main widget ----------------
         self.setCentralWidget(mainWidget)
         
+        ## Set the current mode ---------------------------------------
         self.__mode = PATTERN_SELECT_MODE
         self.__lastMode = self.__mode
         self.__modeBeforeIntensity = None
 
+        ## Set running ------------------------------------------------
         self.__running = False
 
     def __createStatusLayout(self):
@@ -121,8 +129,8 @@ class MainWindow(QMainWindow):
         self.StartButton = QPushButton("Start")
         self.__setFont(self.StartButton, CONTROL_BUTTON_FONT_SIZE)
         self.StartButton.setMinimumSize(CONTROL_BUTTON_WIDTH,CONTROL_BUTTON_HEIGHT)
-        startIcon = QIcon("/home/pi/Desktop/Lightbox/icons/Start.png")
-        stopIcon = QIcon("/home/pi/Desktop/Lightbox/icons/Stop.png")
+        startIcon = QIcon(START_ICON_LOC)
+        stopIcon = QIcon(STOP_ICON_LOC)
         self.StartButton.setIcon(startIcon)
         self.StopButton = QPushButton("Stop")
         self.__setFont(self.StopButton, CONTROL_BUTTON_FONT_SIZE)
@@ -240,6 +248,7 @@ class MainWindow(QMainWindow):
                 else:
                     self.__clearLayout(item.layout())
     
+    ## Intensity Button has been clicked -------------------------------------------------------
     def __intensityButtonClicked(self):
         self.__Log("Intensity Button Clicked")
         self.__lastMode = self.__mode
@@ -261,7 +270,8 @@ class MainWindow(QMainWindow):
             #self.__drawPatternButtons()
         else:
             self.__Log("Bad Mode")
-              
+         
+    ## Tag Button has been clicked -------------------------------------------------------     
     def _tagButtonClicked(self,buttonTag):
         self.__Log("Button Tag: %s, mode: %s"%(buttonTag, self.__mode))
         if self.__mode == PATTERN_SELECT_MODE:
@@ -317,6 +327,7 @@ class MainWindow(QMainWindow):
         else:
             self.__Log("Bad Mode")
         
+    ## Preset has been selected -------------------------------------------------------
     def __presetPatternSelectedForStart(self,ID):
         self.__Log("Preset pattern selected with ID %d"%ID)
         if ID >= 0 and ID < len(self.__savedPresets):
@@ -327,6 +338,7 @@ class MainWindow(QMainWindow):
             self.StartButton.setEnabled(True)
             return      
         
+    ## Intensity selection has been clicked -------------------------------------------
     def __intensitySelected(self, ID):
         ## NOTE: INtensity does not change until the STOP->START  is pressed.
         self.__Log("Got Intensity: %d"%ID)
@@ -335,6 +347,7 @@ class MainWindow(QMainWindow):
         self.__mode = self.__lastMode
         self.__redrawMode()
         
+    ## Color selection has been clicked ----------------------------------------------
     def __colorSelected(self, colorTag):
         self.__Log("Got Color Selected: %s, setting index %d"%(colorTag,self.__currentColorSelection))
         presetColorList = list()
@@ -365,6 +378,7 @@ class MainWindow(QMainWindow):
                     
         self.__drawPatternSettings(self.__selectedPattern) 
         
+    ## Pattern selected to be saved -----------------------------------------------------
     def __savePatternAsPreset(self):
         self.__Log("Save Pattern As Preset")
         if self.__selectedPattern.CanStart():
@@ -393,7 +407,8 @@ class MainWindow(QMainWindow):
                 self.__Log("Saved  Pattern.")
                 self.__presetManager.SavePresetPattern(newPattern)
                 self.__drawPatternSettings(self.__selectedPattern, False, True, PRESET_SAVED)  
-        
+     
+    ## Pattern control button pressed -----------------------------------------------   
     def __patternEditControlPressed(self,buttonTag):
         if buttonTag == "Back":
             self.__drawPatternButtons()
@@ -401,7 +416,8 @@ class MainWindow(QMainWindow):
                 self.__currentPatternLabel.setText(PATTERN_PREAMBLE + self.__loadedPattern.GetName()  + ' ' + self.__loadedPattern.GetColorString())
         else:
             self.__Log("Unknown tag: %s"%buttonTag)
-            
+     
+    ## Pattern selected from main selection -----------------------------------------       
     def __patternSelected(self,buttonTag):
         self.__Log("Pattern \'%s\' pressed"%buttonTag)
         
@@ -422,7 +438,7 @@ class MainWindow(QMainWindow):
         
         self.__Log("Didn't find a pattern that matched tag!")
         
-    
+    ## Start clicked ---------------------------------------------------------------
     def __handleStart(self):
         self.__Log("START")
         if self.__loadedPattern != None:
@@ -436,7 +452,8 @@ class MainWindow(QMainWindow):
             self.EXECUTION_THREAD = ExecutionThread(self.__loadedPattern,self.__currentIntensity, self.__log)
             self.EXECUTION_THREAD.start()
             time.sleep(.5)            
-            
+          
+    ## Stop clicked ----------------------------------------------------------------  
     def __handleStop(self):
         self.__Log("STOP")
         if self.__running:
@@ -451,7 +468,31 @@ class MainWindow(QMainWindow):
                 time.sleep(.5)
                 
             self.__redrawMode()
-            
+    
+    ## Handle Reset Pressed for Duration Trigger -----------------------------------
+    def __handleResetDurationTrigger(self):
+        return
+    
+    ## Start Duration Trigger Handler -----------------------------------------------
+    def __handleStartDurationUpdated(self,newDuration):
+        self.__Log("Duration Trigger Returned durationUpdated! New Duration %d"%newDuration)
+        ## Update the information/status layout
+        
+    ## Start Duration Trigger Finished ----------------------------------------------
+    def __handleStartDurationTriggerCompleted(self):
+        self.__Log("Duration Trigger returned completed! Stopping Task!")
+        self.__handleStop()    
+    
+    ## Stop Duration Trigger Handler -----------------------------------------------
+    def __handleStopDurationUpdated(self,newDuration):
+        self.__Log("Duration Trigger Returned durationUpdated! New Duration %d"%newDuration)
+        ## Update the information/status layout
+        
+    ## Stop Duration Trigger Finished ----------------------------------------------
+    def __handleStopDurationTriggerCompleted(self):
+        self.__Log("Duration Trigger returned completed! Stopping Task!")
+        self.__handleStop()
+      
     def __phoneHome(self):
         if RASPI:
             os.system("/home/pi/Desktop/Lightbox/util/phoneHome.sh &")
@@ -488,6 +529,7 @@ class MainWindow(QMainWindow):
         font.setPointSize(size)
         object.setFont(font)  
         
+    ## Check if start button is valid -------------------------------------------------
     def __startValid(self):
         self.__Log("In start Valid")
         if self.__mode == PATTERN_EDIT_MODE or self.__mode == PATTERN_PRESET_SELECT_MODE:
@@ -503,6 +545,7 @@ class MainWindow(QMainWindow):
         else:
             self.StartButton.setEnabled(False)
             
+    ## Draw last mode -----------------------------------------------------------------
     def __redrawMode(self):
         if self.__mode == PATTERN_EDIT_MODE:
             self.__drawPatternSettings(self.__selectedPattern)
@@ -701,6 +744,7 @@ class MainWindow(QMainWindow):
         
         self.__mainLayout.addLayout(self.__selectedPatternLayout)
     
+    ## Draw color buttons ------------------------------------------------------
     def __drawColorButtons(self):
         self.__colorButtonChooserLayout = QHBoxLayout()
         numOfColors = len(Colors)
@@ -711,7 +755,8 @@ class MainWindow(QMainWindow):
             self.__colorButtonChooserLayout.addWidget(button)
         
         self.__drawPatternSettings(self.__selectedPattern, True)            
-            
+     
+    ## Draw Intensity Button screen ---------------------------------------------       
     def __drawIntensityButtons(self):
         self.__modeBeforeIntensity = self.__mode
         self.__mode = INTENSITY_SELECT_MODE
@@ -759,7 +804,8 @@ class MainWindow(QMainWindow):
             self.__intensitySelectLayout.addLayout(rowLayout)
             
         self.__mainLayout.addLayout(self.__intensitySelectLayout)
-                
+     
+    ## Draw Presets -------------------------------------------------------------------           
     def __drawPresetPatternsForSelection(self):
         if len(self.__savedPresets) > 0:
             self.__mode = PATTERN_PRESET_SELECT_MODE
@@ -781,7 +827,8 @@ class MainWindow(QMainWindow):
 
         self.__selectedPattern = None
         self.__startValid()
-         
+    
+    ## Create Preset Layout -----------------------------------------------------     
     def __createPresetPatternLayout(self):
         self.__clearLayout(self.__selectedPatternLayout)
         self.__clearLayout(self.__defaultButtonLayout)
@@ -848,8 +895,3 @@ class MainWindow(QMainWindow):
                 newRow.addStretch(1)
             self.__presetButtonLayout.addLayout(newRow)
             
-        
-        
-        
-        
-        

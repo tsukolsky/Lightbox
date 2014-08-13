@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import sys, os
-from MainWindow import MainWindow
+from ui.MainWindow import MainWindow
 from PyQt4.QtGui import QApplication
 from util.Log import Log
 

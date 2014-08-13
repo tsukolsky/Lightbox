@@ -1,13 +1,6 @@
 import os, time
-from Pattern import Pattern
-from util.Settings import  DEFAULT_PATTERNS, pIndex, Colors, ColorsByIndex, RASPI
-PRESET_FILE = None
-if RASPI:
-    PRESET_FILE = "/home/pi/Desktop/Lightbox/saved_presets.txt"
-else:
-    PRESET_FILE = "/home/tsukolsky/eclipse_workspace/Lightbox/saved_presets.txt"
-    if not os.path.exists("/home/tsukolsky/eclipse_workspace/Lightbox/"):
-        PRESET_FILE = "/home/todd/workspace/LightPad/saved_presets.txt"
+from util.Pattern import Pattern
+from util.Settings import  DEFAULT_PATTERNS, pIndex, Colors, ColorsByIndex, RASPI, PRESET_FILE
         
 class PresetManager():
     def __init__(self, log = None):
