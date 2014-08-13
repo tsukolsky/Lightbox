@@ -15,6 +15,7 @@ using namespace std;
 #define ONE_MS			10
 #define RANGE_120HZ		8*ONE_MS
 #define NUM_OF_PINS 	7
+#define MAX_RANGE		100
 
 const unsigned int wiringPiPins[NUM_OF_PINS]  = {7,0,1,2,3,4,5};
 
@@ -24,7 +25,7 @@ void show_fixed_pattern(unsigned int intensity, unsigned int color)
 {
 	pinMode(wiringPiPins[color], OUTPUT);
 	digitalWrite(wiringPiPins[color], LOW);
-	softPwmCreate(wiringPiPins[color], 0, RANGE_120HZ);
+	softPwmCreate(wiringPiPins[color], 0, MAX_RANGE);
 
 	// Start the continous signal
 	softPwmWrite(wiringPiPins[color],intensity);
@@ -52,9 +53,9 @@ void show_tri_color_pattern(unsigned int intensity, unsigned int colorOne, unsig
 	digitalWrite(wiringPiPins[colorTwo], LOW);
 	digitalWrite(wiringPiPins[colorThree], LOW);
 
-	softPwmCreate(wiringPiPins[colorOne], 0, RANGE_120HZ);
-	softPwmCreate(wiringPiPins[colorTwo], 0, RANGE_120HZ);
-	softPwmCreate(wiringPiPins[colorThree], 0, RANGE_120HZ);
+	softPwmCreate(wiringPiPins[colorOne], 0, MAX_RANGE);
+	softPwmCreate(wiringPiPins[colorTwo], 0, MAX_RANGE);
+	softPwmCreate(wiringPiPins[colorThree], 0, MAX_RANGE);
 
 	unsigned int on_dur = 0;
 	unsigned int off_dur = 0;
@@ -111,8 +112,8 @@ void show_dual_color_pattern(unsigned int intensity, unsigned int colorOne, unsi
 	digitalWrite(wiringPiPins[colorOne], LOW);
 	digitalWrite(wiringPiPins[colorTwo], LOW);
 
-	softPwmCreate(wiringPiPins[colorOne], 0, RANGE_120HZ);
-	softPwmCreate(wiringPiPins[colorTwo], 0, RANGE_120HZ);
+	softPwmCreate(wiringPiPins[colorOne], 0, MAX_RANGE);
+	softPwmCreate(wiringPiPins[colorTwo], 0, MAX_RANGE);
 
 	unsigned int on_dur = 0;
 	unsigned int off_dur = 0;
@@ -154,7 +155,7 @@ void show_single_color_pattern(unsigned int intensity, unsigned int color, unsig
 
 	pinMode(wiringPiPins[color], OUTPUT);
 	digitalWrite(wiringPiPins[color], LOW);
-	softPwmCreate(wiringPiPins[color], 0, RANGE_120HZ);
+	softPwmCreate(wiringPiPins[color], 0, MAX_RANGE);
 
 	for (int i = 0; i < listSize; i++)
 	{
@@ -230,7 +231,7 @@ int main(int argc, char* argv[])
 	}
 
 	float intensityPerc = intensity/100.0;
-	int newIntensity = RANGE_120HZ*intensityPerc;
+	int newIntensity = MAX_RANGE*intensityPerc;
 	cout << "Intensity Percentage is " << intensityPerc << ", final intensity is " << newIntensity << endl;
 
 #ifdef TEST
