@@ -6,6 +6,7 @@ class DurationTrigger(threading.Thread):
         super(DurationTrigger,self).__init__()
         self.__durationTime = timeInSeconds
         self.__running = False
+        self.__depleted = False
         self.log = log
         self.CALLING_CLASS = "DurationTrigger"
         self.DurationTimeUpdated = Event()
@@ -16,6 +17,9 @@ class DurationTrigger(threading.Thread):
         if self.log != None:
             self.log.LOG(self.CALLING_CLASS, message)
              
+    def IsDepleted(self):
+        return self.__depleted
+    
     def IsRunning(self):
         return self.__running
     
@@ -52,8 +56,9 @@ class DurationTrigger(threading.Thread):
         else:
             self.__log("Stopped because of time trigger completion")
             
-        self.DurationTimeUpdated(tmpTime)
         self.__running = False
+        self.__depleted = True
+        self.DurationTimeUpdated(tmpTime)
      
     def Pause(self):
         self.pauserequest.set()

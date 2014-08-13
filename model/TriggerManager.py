@@ -48,11 +48,37 @@ class TriggerManager():
     def GlobalStart(self):   
         self.__log("Starting start triggers.")
         for tag, trigger in self.__startTriggers.iteritems():
-            if not trigger.IsRunning():
+            if not trigger.IsRunning() and not trigger.IsDepleted():
                 trigger.start()
-            else:
+            elif not trigger.IsDepleted():
                 trigger.Resume()
-        
+    
+    def ReinitializeTriggers(self):
+        self.__log("Reinitialize Triggers")
+        for key, trigger in self.__startTriggers.iteritems():
+            if key == DURATION_TRIGGER:
+                duration = trigger.GetDuration()
+                if trigger.IsRunning():
+                    trigger.join()
+                    
+                del trigger
+                newTrigger = DurationTrigger(duration)
+                self.__startTriggers[key] = newTrigger
+                newTrigger.DurationTimeUpdated.subscribe(self.__handleStartDurationTriggerUpdated)
+                self.__handleStartDurationTriggerUpdated(duration)
+    
+        for key, trigger in self.__stopTriggers.iteritems():
+            if key == DURATION_TRIGGER:
+                duration = trigger.GetDuration()
+                if trigger.IsRunning():
+                    trigger.join()
+                    
+                del trigger
+                newTrigger = DurationTrigger(duration)    
+                self.__stopTriggers[key] = newTrigger   
+                newTrigger.DurationTimeUpdated.subscribe(self.__handleStopDurationTriggerUpdated)
+                self.__handleStopDurationTriggerUpdated(duration)         
+    
     def InitializeStopTriggers(self):
         self.__log("Initializing stop triggers")
         for tag, trigger in self.__stopTriggers.iteritems():
@@ -98,7 +124,7 @@ class TriggerManager():
             retBool = True
             triggerAction = optDict[FIELD_ACTIONTYPE]
             if triggerAction == ACTIONTYPE_START:
-                trigger = DurationTrigger(duration)
+                trigger = DurationTrigger(duration, self.log)
                 if DURATION_TRIGGER in self.__startTriggers:
                     oldTrigger = self.__startTriggers[DURATION_TRIGGER]
                     oldTrigger.DurationTimeUpdated.unsubscribe()
@@ -108,7 +134,7 @@ class TriggerManager():
                 self.__handleStartDurationTriggerUpdated(duration)
                 self.__log("Start Trigger: Duration is now added.")
             elif triggerAction == ACTIONTYPE_STOP:
-                trigger = DurationTrigger(duration)
+                trigger = DurationTrigger(duration, self.log)
                 if DURATION_TRIGGER in self.__stopTriggers:
                     oldTrigger = self.__stopTriggers[DURATION_TRIGGER]
                     oldTrigger.DurationTimeUpdated.unsubscribe()

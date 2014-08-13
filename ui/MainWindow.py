@@ -46,6 +46,8 @@ NONE_STR                    = "None"
 TRIGGER_START_PREAMBLE      = "Start Delay: "
 TRIGGER_STOP_PREAMBLE       = "Stop Delay: "
 WAITING_FOR_START_TRIGGER   = "Waiting for start delay..."
+STOPPED_BY_TRIGGER          = "Stopped by duration trigger"
+
 class MainWindow(QMainWindow):
     SHUTDOWN_MENU = "&Shutdown"
     HELP_MENU = "&Help"
@@ -497,7 +499,10 @@ class MainWindow(QMainWindow):
             self.__running = False
             #self.__selectedPattern.ClearColors()
             #self.__currentPatternLabel.setText(PATTERN_PREAMBLE + NO_PATTERN_SELECTED)
-            self.__currentStatusLabel.setText(STATUS_PREAMBLE + STOPPED)
+            if triggerActivated:
+                self.__currentStatusLabel.setText(STATUS_PREAMBLE + STOPPED_BY_TRIGGER)
+            else:
+                self.__currentStatusLabel.setText(STATUS_PREAMBLE + STOPPED)
             self.__triggerManager.GlobalStop()
             # Stop Threading
             if (self.EXECUTION_THREAD != None):
@@ -506,6 +511,8 @@ class MainWindow(QMainWindow):
                 
             if not triggerActivated:
                 self.__redrawMode()
+            
+            self.__triggerManager.ReinitializeTriggers()
     
     ## Handle Trig
     def __handleTriggerConfigureClicked(self):
@@ -513,10 +520,10 @@ class MainWindow(QMainWindow):
         ## Make new screen (disable all buttons except stop
         
         ## See if they have entered a valid trigger
-        makeStartTrigger = True
+        makeStartTrigger = False
         makeStopTrigger = True
-        startDuration = 10
-        stopDuration = 10
+        startDuration = 3
+        stopDuration = 3
         if makeStartTrigger:
             bundle = dict()
             bundle[FIELD_DURATION] = startDuration
@@ -568,7 +575,7 @@ class MainWindow(QMainWindow):
             elif eventType == STOP_TRIGGER_ACTIVATED:
                 if FIELD_DURATION in bundle:
                     timeInTrigger = bundle[FIELD_DURATION]
-                    self.__Log("Update start duration value")
+                    self.__Log("Update stop duration value")
                     self.__triggerStopLabel.setText(TRIGGER_STOP_PREAMBLE + str(timeInTrigger))
                 self.__handleStop(True)
         return
