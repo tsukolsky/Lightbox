@@ -1,18 +1,25 @@
 from util.Enum import Enum
-import platform
+import platform, os, inspect
 
 RASPI = True
 if platform.dist()[0] == "Ubuntu":
     RASPI = False
 
+### Optional Features --------------------------------
 ADD_PATTERN_ENABLED = False
 PHONE_HOME_ENABLED = False
+TIMER_ENABLED = False
 MAX_NUM_PRESETS = 16
 
-pIndex = Enum(["Name", "Description", "Default", "ColorList","RequiredColors","PWM", "Id"])
-Colors = Enum(["Red", "Red-Orange", "Cyan", "Green", "Blue", "White", "Yellow","Empty"])
-ColorsByIndex = ["Red", "Red-Orange", "Cyan", "Green", "Blue", "White", "Yellow","Empty"]
+### Path Settings ------------------------------------
+currentFile = inspect.getfile(inspect.currentframe())
+currentPath = currentFile.split('/util/Settings.py')[0]
+PRESET_FILE = currentPath + "/saved_presets.txt"
+START_ICON_LOC  = currentPath + "/icons/Start.png"
+STOP_ICON_LOC   = currentPath + "/icons/Stop.png"
+print "Current path is %s. Preset file is %s, Start Icon/Stop icon are %s, %s"%(currentPath, PRESET_FILE, START_ICON_LOC, STOP_ICON_LOC)
 
+### Pi-GPIO Dictionary and WiringPi GPIO Corresponding value ---------------------------
 GpioDict = dict()
 GpioDict["Red"]         = 7
 GpioDict["Red-Orange"]  = 11
@@ -30,6 +37,13 @@ WireGpioDict["Green"]       = 3
 WireGpioDict["Blue"]        = 4
 WireGpioDict["White"]       = 5
 WireGpioDict["Yellow"]      = 6
+
+### Color Declarations -------------------------------
+Colors = Enum(["Red", "Red-Orange", "Cyan", "Green", "Blue", "White", "Yellow","Empty"])
+ColorsByIndex = ["Red", "Red-Orange", "Cyan", "Green", "Blue", "White", "Yellow","Empty"]
+
+### Pattern Declarations -----------------------------
+pIndex = Enum(["Name", "Description", "Default", "ColorList","RequiredColors","PWM", "Id"])
 
 PatternDict = dict()
 PatternDict["4Hz"] = 0
@@ -49,8 +63,16 @@ PatternDict["Fixed"] = 12
 Intensities = [80,100,200,400,800,1000,1600,2000,3200,4000]
 
 IntensityDict = dict()
-for intensity in Intensities:
-    IntensityDict[intensity] = (intensity)*100/4000
+IntensityDict[80]   = 18
+IntensityDict[100]  = 20
+IntensityDict[200]  = 25
+IntensityDict[400]  = 35
+IntensityDict[800]  = 45
+IntensityDict[1000] = 62
+IntensityDict[1600] = 70
+IntensityDict[2000] = 75
+IntensityDict[3200] = 90
+IntensityDict[4000] = 100
 
 DEFAULT_PATTERNS = list()
 
