@@ -7,7 +7,7 @@ import sys, os, time
 from PyQt4.QtGui import QApplication
 from util.Log import Log
 from util.Settings import *
-from util.MyPushButton import TagPushButton, IDPushButton
+from util.MyPushButton import TagPushButton, IDPushButton, DurationPushButton
 from util.Pattern import Pattern
 from model.ExecutionThread import ExecutionThread
 from model.PresetManager import PresetManager
@@ -96,6 +96,7 @@ class MainWindow(QMainWindow):
         self.__selectedPatternLayout = QVBoxLayout()
         self.__intensitySelectLayout = QVBoxLayout()
         self.__presetButtonLayout = QVBoxLayout()
+        self.__triggerLayout = QVBoxLayout()
         
         ## Initialize and create pattern buttons ----------------------
         self.__patterns = list()
@@ -115,7 +116,8 @@ class MainWindow(QMainWindow):
         # Connect TagPushButton signals -------------------------------
         self.connect(self, SIGNAL("tagPushButtonClicked(PyQt_PyObject)"), self._tagButtonClicked)
         self.connect(self,SIGNAL("idPushButtonClicked(PyQt_PyObject)"), self._idButtonClicked)
-        
+        self.connect(self,SIGNAL("durationPushButtonClicked(PyQt_PyObject)"), self.__durationButtonClicked)
+         
         # Make the window knwo what is the main widget ----------------
         self.setCentralWidget(mainWidget)
         
@@ -285,6 +287,12 @@ class MainWindow(QMainWindow):
         self.__Log("Intensity Button Clicked")
         self.__lastMode = self.__mode
         self.__drawIntensityButtons()     
+
+    ## Duration Button has been clicked ---------------------------------------------------
+    def __durationButtonClicked(self, durationTag):
+        self.__Log("Duration Button Clicked: %s"%durationTag)
+        if (durationTag == "Back"):
+            self.__redrawMode()
 
     ## Color Button has been clicked -------------------------------------------------------
     def _idButtonClicked(self,ID):
@@ -520,7 +528,7 @@ class MainWindow(QMainWindow):
         ## Make new screen (disable all buttons except stop
         
         ## See if they have entered a valid trigger
-        makeStartTrigger = False
+        makeStartTrigger = True
         makeStopTrigger = True
         startDuration = 3
         stopDuration = 3
@@ -660,15 +668,7 @@ class MainWindow(QMainWindow):
         self.__mode = PATTERN_SELECT_MODE
         self.__startValid() 
         
-        self.__clearLayout(self.__selectedPatternLayout)
-        self.__clearLayout(self.__defaultButtonLayout)
-        self.__clearLayout(self.__intensitySelectLayout)
-        self.__clearLayout(self.__presetButtonLayout)
-        
-        self.__defaultButtonLayout = QVBoxLayout()
-        self.__selectedPatternLayout = QVBoxLayout()
-        self.__intensityLayout = QVBoxLayout()
-        self.__presetButtonLayout = QVBoxLayout()
+        self.__reinitializeDefaultLayouts()
         self.__buttons = list()
         
         # add label for this screen
@@ -747,15 +747,8 @@ class MainWindow(QMainWindow):
         self.__Log("Draw pattern settings")
         self.__Log("Pattern \'%s\' pressed"%pattern.GetName())
         self.__Log("Clearing pattern layout.")
-        self.__clearLayout(self.__selectedPatternLayout)
-        self.__clearLayout(self.__defaultButtonLayout)
-        self.__clearLayout(self.__intensitySelectLayout)
-        self.__clearLayout(self.__presetButtonLayout)
         
-        self.__defaultButtonLayout = QVBoxLayout()
-        self.__selectedPatternLayout = QVBoxLayout()
-        self.__intensityLayout = QVBoxLayout()
-        self.__presetButtonLayout = QVBoxLayout()
+        self.__reinitializeDefaultLayouts()
         
         # Pattern picture 
         patternLayout = QHBoxLayout()
@@ -848,15 +841,7 @@ class MainWindow(QMainWindow):
         self.__modeBeforeIntensity = self.__mode
         self.__mode = INTENSITY_SELECT_MODE
         self.__Log("Draw intensity buttons")
-        self.__clearLayout(self.__selectedPatternLayout)
-        self.__clearLayout(self.__defaultButtonLayout)
-        self.__clearLayout(self.__intensitySelectLayout)
-        self.__clearLayout(self.__presetButtonLayout)
-        
-        self.__defaultButtonLayout = QVBoxLayout()
-        self.__selectedPatternLayout = QVBoxLayout()
-        self.__intensitySelectLayout = QVBoxLayout()
-        self.__presetButtonLayout = QVBoxLayout()
+        self.__reinitializeDefaultLayouts()
         
         self.__intensitySelectLayout.addStretch(1)
         
@@ -917,17 +902,9 @@ class MainWindow(QMainWindow):
     
     ## Create Preset Layout -----------------------------------------------------     
     def __createPresetPatternLayout(self):
-        self.__clearLayout(self.__selectedPatternLayout)
-        self.__clearLayout(self.__defaultButtonLayout)
-        self.__clearLayout(self.__intensitySelectLayout)
-        self.__clearLayout(self.__presetButtonLayout)
-        
         self.__currentPatternLabel.setText(PATTERN_PREAMBLE + EMPTY_PATTERN_SELECTED)
         
-        self.__defaultButtonLayout = QVBoxLayout()
-        self.__selectedPatternLayout = QVBoxLayout()
-        self.__intensityLayout = QVBoxLayout()
-        self.__presetButtonLayout = QVBoxLayout()
+        self.__reinitializeDefaultLayouts()
         
         presetLabelLayout = QHBoxLayout()
         presetLabelLayout.addStretch(1)
@@ -981,4 +958,31 @@ class MainWindow(QMainWindow):
             if lastRowStretch and i == numOfRows-1:
                 newRow.addStretch(1)
             self.__presetButtonLayout.addLayout(newRow)
-            
+
+    def __drawTriggerConfigScreen(self):
+        self.__Log("Making trigger config screen")
+        self.__lastMode = self.__mode
+        
+        self.__reinitializeDefaultLayouts()
+        
+        backButton = DurationPushButton(self, "Back")
+        self.__setFont(backButton, CONTROL_BUTTON_FONT_SIZE)
+        backButton.setMinimumSize(CONTROL_BUTTON_WIDTH, CONTROL_BUTTON_HEIGHT)
+        
+        
+    
+    def __reinitializeDefaultLayouts(self):
+        self.__clearLayout(self.__selectedPatternLayout)
+        self.__clearLayout(self.__defaultButtonLayout)
+        self.__clearLayout(self.__intensitySelectLayout)
+        self.__clearLayout(self.__presetButtonLayout)
+        self.__clearLayout(self.__triggerLayout)
+        
+        self.__defaultButtonLayout = QVBoxLayout()
+        self.__selectedPatternLayout = QVBoxLayout()
+        self.__intensityLayout = QVBoxLayout()
+        self.__presetButtonLayout = QVBoxLayout()
+        self.__triggerLayout = QVBoxLayout()
+        
+        
+        
