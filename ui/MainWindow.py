@@ -6,6 +6,7 @@ from PyQt4.QtCore import Qt, SIGNAL
 import sys, os, time
 from PyQt4.QtGui import QApplication
 from util.Log import Log
+from util.Events import Event
 from util.Settings import *
 from util.MyPushButton import TagPushButton, IDPushButton, DurationPushButton
 from util.Pattern import Pattern
@@ -34,6 +35,7 @@ PATTERN_EDIT_MODE           = "EDIT"
 PATTERN_SELECT_MODE         = "SELECT"
 PATTERN_PRESET_SELECT_MODE  = "PRESET_SELECT"
 PATTERN_PRESET_DELETE_MODE  = "PRESET_DELETE"
+TRIGGER_CONFIGURATION_MODE  = "TRIGGER_CONFIG_MODE"
 INTENSITY_SELECT_MODE       = "INTENSITY"
 INTENSITY_PREAMBLE          = "Intensity: "
 STATUS_PREAMBLE             = "Status: "
@@ -47,6 +49,14 @@ TRIGGER_START_PREAMBLE      = "Start Delay: "
 TRIGGER_STOP_PREAMBLE       = "Stop Delay: "
 WAITING_FOR_START_TRIGGER   = "Waiting for start delay..."
 STOPPED_BY_TRIGGER          = "Stopped by duration trigger"
+
+SAVE                        = "Save"
+OKAY                        = "Okay"
+CANCEL                      = "Cancel"
+BACK                        = "Back"
+DELETE                      = "Delete"
+RESET                       = "Reset"
+SAVE_AS_PRESET              = "Save As Preset"
 
 class MainWindow(QMainWindow):
     SHUTDOWN_MENU = "&Shutdown"
@@ -128,6 +138,10 @@ class MainWindow(QMainWindow):
 
         ## Set running ------------------------------------------------
         self.__running = False
+        
+        ## Initliaze Events -------------------------------------------
+        self.CommitTriggers = Event()
+        self.CommitTriggers.subscribe(self.__handleTriggersSaved)
 
     def __createStatusLayout(self):
         ## Make the currently running, start and stop button, running status
@@ -291,7 +305,10 @@ class MainWindow(QMainWindow):
     ## Duration Button has been clicked ---------------------------------------------------
     def __durationButtonClicked(self, durationTag):
         self.__Log("Duration Button Clicked: %s"%durationTag)
-        if (durationTag == "Back"):
+        if (durationTag == BACK):
+            self.__redrawMode()
+        elif (durationTag == SAVE):
+            self.CommitTriggers()
             self.__redrawMode()
 
     ## Color Button has been clicked -------------------------------------------------------
@@ -318,14 +335,14 @@ class MainWindow(QMainWindow):
             self.__patternSelected(buttonTag)
         elif self.__mode == PATTERN_EDIT_MODE:
             # Must be the back or OK buttons
-            if buttonTag == "Back":
+            if buttonTag == BACK:
                 self.__patternEditControlPressed(buttonTag)
-            elif buttonTag == "Save as Preset":
+            elif buttonTag == SAVE_AS_PRESET:
                 self.__savePatternAsPreset()
             else:
                 self.__colorSelected(buttonTag)
         elif self.__mode == PATTERN_PRESET_SELECT_MODE:
-            if buttonTag == "Back":
+            if buttonTag == BACK:
                 if self.__loadedPatternBeforePreset != None and self.__presetPatternForDeleting != None:
                     self.__Log("Both are not none")
                     if self.__loadedPatternBeforePreset.GetName() != self.__presetPatternForDeleting.GetName() and self.__loadedPatternBeforePreset.GetColorString() != self.__presetPatternForDeleting.GetColorString():
@@ -337,7 +354,7 @@ class MainWindow(QMainWindow):
                 self.__drawPatternButtons()
                 if self.__loadedPattern != None:
                     self.__currentPatternLabel.setText(PATTERN_PREAMBLE + self.__loadedPattern.GetName() + ' ' + self.__loadedPattern.GetColorString())
-            elif buttonTag == "Delete":
+            elif buttonTag == DELETE:
                 self.__presetPatternForDeleting = self.__loadedPattern
                 if self.__loadedPatternBeforePreset != None and self.__presetPatternForDeleting != None:
                     self.__Log("Both are not none")
@@ -450,7 +467,7 @@ class MainWindow(QMainWindow):
      
     ## Pattern control button pressed -----------------------------------------------   
     def __patternEditControlPressed(self,buttonTag):
-        if buttonTag == "Back":
+        if buttonTag == BACK:
             self.__drawPatternButtons()
             if self.__loadedPattern != None:
                 self.__currentPatternLabel.setText(PATTERN_PREAMBLE + self.__loadedPattern.GetName()  + ' ' + self.__loadedPattern.GetColorString())
@@ -526,7 +543,9 @@ class MainWindow(QMainWindow):
     def __handleTriggerConfigureClicked(self):
         self.__Log("Configure triggers!")
         ## Make new screen (disable all buttons except stop
+        self.__drawTriggerConfigScreen()
         
+    def __handleTriggersSaved(self):
         ## See if they have entered a valid trigger
         makeStartTrigger = True
         makeStopTrigger = True
@@ -546,7 +565,6 @@ class MainWindow(QMainWindow):
             bundle[FIELD_TYPE] = DURATION_TRIGGER
             triggerCreated = self.__triggerManager.CreateTrigger(bundle)
             
-    
     ## Handle Reset Pressed for Duration Trigger -----------------------------------
     def __handleResetStartTriggers(self):
         return
@@ -660,6 +678,12 @@ class MainWindow(QMainWindow):
                     self.__drawPatternButtons()
             else:
                 self.__drawPatternButtons()
+        elif self.__mode == TRIGGER_CONFIGURATION_MODE:
+            self.__mode = self.__lastMode
+            if self.__mode == TRIGGER_CONFIGURATION_MODE:
+                self.__drawPatternButtons()
+            else:
+                self.__redrawMode()
         else:
             self.__Log("No mode to redraw")
                     
@@ -795,8 +819,8 @@ class MainWindow(QMainWindow):
         # Control buttons
         controlButtonLayout = QHBoxLayout()
         controlButtonLayout.addStretch(1)
-        saveButton = TagPushButton(self,"Save as Preset")
-        backButton = TagPushButton(self,"Back")
+        saveButton = TagPushButton(self,SAVE_AS_PRESET)
+        backButton = TagPushButton(self,BACK)
 
         saveButton.setMinimumSize(CONTROL_BUTTON_WIDTH, CONTROL_BUTTON_HEIGHT)
         backButton.setMinimumSize(CONTROL_BUTTON_WIDTH, CONTROL_BUTTON_HEIGHT)
@@ -884,11 +908,11 @@ class MainWindow(QMainWindow):
             self.__createPresetPatternLayout()
             controlLayout = QHBoxLayout()
             controlLayout.addStretch(1)
-            self.__presetDeleteButton = TagPushButton(self,"Delete")
+            self.__presetDeleteButton = TagPushButton(self,DELETE)
             self.__setFont(self.__presetDeleteButton, CONTROL_BUTTON_FONT_SIZE)
             self.__presetDeleteButton.setMinimumSize(CONTROL_BUTTON_WIDTH, CONTROL_BUTTON_HEIGHT)
             self.__presetDeleteButton.setEnabled(False)
-            backButton = TagPushButton(self,"Back")
+            backButton = TagPushButton(self,BACK)
             self.__setFont(backButton,CONTROL_BUTTON_FONT_SIZE)
             backButton.setMinimumSize(CONTROL_BUTTON_WIDTH, CONTROL_BUTTON_HEIGHT)
             controlLayout.addWidget(self.__presetDeleteButton)
@@ -918,7 +942,7 @@ class MainWindow(QMainWindow):
             return
         numOfButtons = len(self.__savedPresets)
         
-        numOfRows = numOfButtons/BUTTONS_PER_ROW
+        numOfRows = numOfButtons/BUTTONS_PER_ROW     
         lastRowStretch = False
         if numOfButtons%BUTTONS_PER_ROW != 0:
             numOfRows += 1
@@ -962,14 +986,24 @@ class MainWindow(QMainWindow):
     def __drawTriggerConfigScreen(self):
         self.__Log("Making trigger config screen")
         self.__lastMode = self.__mode
-        
+        self.__mode = TRIGGER_CONFIGURATION_MODE
         self.__reinitializeDefaultLayouts()
         
-        backButton = DurationPushButton(self, "Back")
+        controlLayout = QHBoxLayout()
+        backButton = DurationPushButton(self, BACK)
         self.__setFont(backButton, CONTROL_BUTTON_FONT_SIZE)
         backButton.setMinimumSize(CONTROL_BUTTON_WIDTH, CONTROL_BUTTON_HEIGHT)
         
+        saveButton = DurationPushButton(self,SAVE)
+        self.__setFont(saveButton, CONTROL_BUTTON_FONT_SIZE)
+        saveButton.setMinimumSize(CONTROL_BUTTON_WIDTH, CONTROL_BUTTON_HEIGHT)
+        controlLayout.addStretch(1)
+        controlLayout.addWidget(saveButton)
+        controlLayout.addWidget(backButton)
         
+        self.__triggerLayout.addStretch(1)
+        self.__triggerLayout.addLayout(controlLayout)
+        self.__mainLayout.addLayout(self.__triggerLayout)
     
     def __reinitializeDefaultLayouts(self):
         self.__clearLayout(self.__selectedPatternLayout)
