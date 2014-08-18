@@ -24,7 +24,6 @@ class ExecutionThread(threading.Thread):
         numOfGpios = self.pattern.GetRequiredColors()
         colorList = self.pattern.GetColorList()
         pwmDict = self.pattern.GetPwmSequenceDict()
-        strobeIntensity = IntensityDict[self.intensity]
     
         gpioPinList = list()
         strobePatternList = list()
@@ -49,21 +48,30 @@ class ExecutionThread(threading.Thread):
         for ind, tmpPin in enumerate(gpioPinList):
             tmpPattern = strobePatternList[ind]
             tmpColor = colorList[ind]
-            configurationString += "\n\tGPIO %d: Color- %s, Pin- %d, Brightness- %d, %d, Pattern- %s"%(ind, tmpColor, tmpPin, self.intensity, strobeIntensity, str(tmpPattern))
+            configurationString += "\n\tGPIO %d: Color- %s, Pin- %d, Brightness- %d, %d, Pattern- %s"%(ind, tmpColor, tmpPin, self.intensity, self.intensity, str(tmpPattern))
             
         configurationString += "\n\n=======================================================================\n"
         self.__log(configurationString)
         
         pinString = ""
-        for pin in wiringGpioPinList:
+        intensityString = ""
+        for index, pin in enumerate(wiringGpioPinList):
             pinString += str(pin) + " "
-        
+            tmpIntensity = IntensityDict[colorList[index]][self.intensity]
+            self.__log("%s %d"%(colorList[index],tmpIntensity))
+            intensityString += str(tmpIntensity) + " "
+            
         for pad in range(0,3-len(wiringGpioPinList)):
             pinString += "-1 "
+            intensityString += "-1 "
             
         pinString = pinString[:-1]
+        intensityString = intensityString[:-1]
+        
         self.__log("Pin string: %s"%pinString)
-        executionString = "sudo /bin/pwm %s %d %d &"%(pinString, strobeIntensity, PatternDict[self.pattern.GetName()])
+        self.__log("Intensity String: %s"%intensityString)
+        
+        executionString = "sudo /bin/pwm %s %s %d &"%(pinString, intensityString, PatternDict[self.pattern.GetName()])
         self.__log("Execution String : %s"%executionString)
         if RASPI:
             os.system(executionString)

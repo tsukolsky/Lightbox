@@ -59,20 +59,69 @@ PatternDict["2Hz 50% Duty"] = 9
 PatternDict["2Hz Group/Alt"] = 10
 PatternDict["2Hz 2-Color"] = 11
 PatternDict["Fixed"] = 12
+PatternDict["Calibration"] = 13
 
+
+#####################################################################
+## Intensity Calibration/Intensity Data
+#####################################################################
 Intensities = [80,100,200,400,800,1000,1600,2000,3200,4000]
 
+## Default percentages
+defaultIntensityDict = dict()
+defaultIntensityDict[80]   = 18
+defaultIntensityDict[100]  = 20
+defaultIntensityDict[200]  = 25
+defaultIntensityDict[400]  = 35
+defaultIntensityDict[800]  = 45
+defaultIntensityDict[1000] = 62
+defaultIntensityDict[1600] = 70
+defaultIntensityDict[2000] = 75
+defaultIntensityDict[3200] = 90
+defaultIntensityDict[4000] = 95
+
+## Individual Color Readings
+redIntensityData = dict()
+redorIntensityData = dict()
+cyanIntensityData = dict()
+greenIntensityData = dict()
+blueIntensityData = dict()
+whiteIntensityData = dict()
+yellowIntensityData = dict()
+
+initList = [redIntensityData, redorIntensityData, cyanIntensityData, greenIntensityData, blueIntensityData, whiteIntensityData, yellowIntensityData]
+for colorDict in initList:
+    colorDict[80]   = 18
+    colorDict[100]  = 20
+    colorDict[200]  = 25
+    colorDict[400]  = 35
+    colorDict[800]  = 45
+    colorDict[1000] = 62
+    colorDict[1600] = 70
+    colorDict[2000] = 75
+    colorDict[3200] = 90
+    colorDict[4000] = 95
+    
+################################################################
+## Edits to the intensities during testing: EDIT HERE
+################################################################
+yellowIntensityData[800] = 43
+
+whiteIntensityData[4000] = 98
+
+## All the dictionaries put into one main for qucker access-- do not edit
 IntensityDict = dict()
-IntensityDict[80]   = 18
-IntensityDict[100]  = 20
-IntensityDict[200]  = 25
-IntensityDict[400]  = 35
-IntensityDict[800]  = 45
-IntensityDict[1000] = 62
-IntensityDict[1600] = 70
-IntensityDict[2000] = 75
-IntensityDict[3200] = 90
-IntensityDict[4000] = 100
+IntensityDict[ColorsByIndex[Colors.Red]] = redIntensityData
+IntensityDict["Red-Orange"] = redorIntensityData
+IntensityDict[ColorsByIndex[Colors.Cyan]] = cyanIntensityData
+IntensityDict[ColorsByIndex[Colors.Green]] = greenIntensityData
+IntensityDict[ColorsByIndex[Colors.Blue]] = blueIntensityData
+IntensityDict[ColorsByIndex[Colors.White]] = whiteIntensityData
+IntensityDict[ColorsByIndex[Colors.Yellow]] = yellowIntensityData
+
+#################################################################
+## Default Patterns
+#################################################################
 
 DEFAULT_PATTERNS = list()
 
@@ -234,7 +283,7 @@ DEFAULT_PATTERNS.append(pattern_ten)
 
 pattern_eleven = list()
 pattern_eleven.append("Fixed")
-pattern_eleven.append("Continous Signal")
+pattern_eleven.append("Continuous Signal")
 pattern_eleven.append(True)
 pattern_eleven.append([ColorsByIndex[Colors.Empty]])
 pattern_eleven.append(1)
@@ -243,5 +292,17 @@ tmpDict[0] = [(1.0, 0)]
 pattern_eleven.append(tmpDict)
 pattern_eleven.append(12)
 DEFAULT_PATTERNS.append(pattern_eleven)
+
+pattern_calibration = list()
+pattern_calibration.append("Calibration")
+pattern_calibration.append("350ms/1650ms")
+pattern_calibration.append(True)
+pattern_calibration.append([ColorsByIndex[Colors.Empty]])
+pattern_calibration.append(1)
+tmpDict = dict()
+tmpDict[0] = [(.350, 1.650)]
+pattern_calibration.append(tmpDict)
+pattern_calibration.append(13)
+DEFAULT_PATTERNS.append(pattern_calibration)
 
 NUM_DEFAULT_PATTERNS = len(DEFAULT_PATTERNS)

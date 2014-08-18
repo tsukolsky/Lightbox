@@ -14,9 +14,11 @@
 #define HZ2_25_INT	10
 #define HZ2_50_ALT	11
 #define FIXED		12
+#define CAL			13
 
 namespace pwm
 {
+static unsigned int calibration[2]	= {350, 1650};
 static unsigned int hz_4[2] = {125, 125};
 static unsigned int hz_6[2] = {83, 83};
 static unsigned int four_three_interrupt[14] = {125, 125, 125, 125, 125, 125, 125, 250, 125, 125, 125, 125, 125, 250};
