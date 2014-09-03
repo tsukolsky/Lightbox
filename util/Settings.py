@@ -20,7 +20,9 @@ START_ICON_LOC      = currentPath + "/icons/Start.png"
 STOP_ICON_LOC       = currentPath + "/icons/Stop.png"
 SHUTDOWN_ICON_LOC   = currentPath + "/icons/Shutdown.png"
 INTENSITY_ICON_LOC  = currentPath + "/icons/Intensity.png"
-
+SAVE_ICON_LOC       = currentPath + "/icons/Save.png"
+BACK_ICON_LOC       = currentPath + "/icons/Back.png"
+DELETE_ICON_LOC     = currentPath + "/icons/Delete.png"
 BLUE_ICON_LOC       = currentPath + "/icons/Blue.png" 
 RED_ICON_LOC        = currentPath + "/icons/Red.png"
 REDOR_ICON_LOC      = currentPath + "/icons/RedOrange.png"
@@ -104,9 +106,82 @@ for colorDict in initList:
 ################################################################
 ## Edits to the intensities during testing: EDIT HERE
 ################################################################
-yellowIntensityData[800] = 43
+redIntensityData[80] = 2
+redIntensityData[100] = 3
+redIntensityData[200] = 4
+redIntensityData[400] = 7
+redIntensityData[800] = 13
+redIntensityData[1000] = 16
+redIntensityData[1600] = 25
+redIntensityData[2000] = 33
+redIntensityData[3200] = 52
+redIntensityData[4000] = 72
 
-whiteIntensityData[4000] = 98
+redorIntensityData[80] = 2
+redorIntensityData[100] = 3
+redorIntensityData[200] = 4
+redorIntensityData[400] = 8
+redorIntensityData[800] = 14
+redorIntensityData[1000] = 17
+redorIntensityData[1600] = 27
+redorIntensityData[2000] = 33
+redorIntensityData[3200] = 52
+redorIntensityData[4000] = 72
+
+cyanIntensityData[80] = 2
+cyanIntensityData[100] = 4
+cyanIntensityData[200] = 7
+cyanIntensityData[400] = 12
+cyanIntensityData[800] = 22
+cyanIntensityData[1000] = 27
+cyanIntensityData[1600] = 41
+cyanIntensityData[2000] = 52
+cyanIntensityData[3200] = 78
+cyanIntensityData[4000] = 100
+
+greenIntensityData[80] = 2
+greenIntensityData[100] = 3
+greenIntensityData[200] = 5
+greenIntensityData[400] = 9
+greenIntensityData[800] = 16
+greenIntensityData[1000] = 20
+greenIntensityData[1600] = 32
+greenIntensityData[2000] = 40
+greenIntensityData[3200] = 65
+greenIntensityData[4000] = 80
+
+blueIntensityData[80] = 3
+blueIntensityData[100] = 4
+blueIntensityData[200] = 6
+blueIntensityData[400] = 10
+blueIntensityData[800] = 19
+blueIntensityData[1000] = 25
+blueIntensityData[1600] = 36
+blueIntensityData[2000] = 44
+blueIntensityData[3200] = 69
+blueIntensityData[4000] = 85
+
+whiteIntensityData[80] = 2
+whiteIntensityData[100] = 2
+whiteIntensityData[200] = 3
+whiteIntensityData[400] = 6
+whiteIntensityData[800] = 11
+whiteIntensityData[1000] = 15
+whiteIntensityData[1600] = 22
+whiteIntensityData[2000] = 28
+whiteIntensityData[3200] = 44
+whiteIntensityData[4000] = 58
+
+yellowIntensityData[80] = 2
+yellowIntensityData[100] = 3
+yellowIntensityData[200] = 4
+yellowIntensityData[400] = 6
+yellowIntensityData[800] = 13
+yellowIntensityData[1000] = 15
+yellowIntensityData[1600] = 27
+yellowIntensityData[2000] = 38
+yellowIntensityData[3200] = 100
+yellowIntensityData[4000] = 100
 
 ## All the dictionaries put into one main for qucker access-- do not edit
 IntensityDict = dict()
