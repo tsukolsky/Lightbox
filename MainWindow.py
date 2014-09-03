@@ -198,7 +198,7 @@ class MainWindow(QMainWindow):
         aboutMenu.addAction(versionAction)
         
         ## Shutdown Menu -----------------------------------------
-        shutdownMenu = menu.addMenu(MainWindow.SHUTDOWN_MENU)
+        #shutdownMenu = menu.addMenu(MainWindow.SHUTDOWN_MENU)
         
         if ADD_PATTERN_ENABLED:
             newPatternAction = QAction(menu)
@@ -209,14 +209,14 @@ class MainWindow(QMainWindow):
             deletePatternAction.setText(MainWindow.DELETE_MENU)
             deletePatternAction.triggered.connect(self.__deletePattern)
             
-            shutdownMenu.addAction(newPatternAction)
-            shutdownMenu.addAction(deletePatternAction)
+            #shutdownMenu.addAction(newPatternAction)
+            #shutdownMenu.addAction(deletePatternAction)
             
-        shutdownAction = QAction(menu)
-        shutdownAction.setText(MainWindow.SHUTDOWN_MENU)
-        shutdownAction.triggered.connect(self.__shutdown)
+        #shutdownAction = QAction(menu)
+        #shutdownAction.setText(MainWindow.SHUTDOWN_MENU)
+        #shutdownAction.triggered.connect(self.__shutdown)
         
-        shutdownMenu.addAction(shutdownAction)
+        #shutdownMenu.addAction(shutdownAction)
         
         ## Soft Exit Menu ------------------------------------
         helpMenu = menu.addMenu(MainWindow.HELP_MENU)
