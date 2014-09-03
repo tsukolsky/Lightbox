@@ -105,6 +105,9 @@ class MainWindow(QMainWindow):
         # Make the window knwo what is the main widget
         self.setCentralWidget(mainWidget)
         
+        self.ColorIcons = [QIcon(RED_ICON_LOC), QIcon(REDOR_ICON_LOC), QIcon(CYAN_ICON_LOC), QIcon(GREEN_ICON_LOC), QIcon(BLUE_ICON_LOC), QIcon(WHITE_ICON_LOC), \
+              QIcon(YELLOW_ICON_LOC)]
+        
         self.__mode = PATTERN_SELECT_MODE
         self.__lastMode = self.__mode
         self.__modeBeforeIntensity = None
@@ -121,8 +124,8 @@ class MainWindow(QMainWindow):
         self.StartButton = QPushButton("Start")
         self.__setFont(self.StartButton, CONTROL_BUTTON_FONT_SIZE)
         self.StartButton.setMinimumSize(CONTROL_BUTTON_WIDTH,CONTROL_BUTTON_HEIGHT)
-        startIcon = QIcon("/home/pi/Desktop/Lightbox/icons/Start.png")
-        stopIcon = QIcon("/home/pi/Desktop/Lightbox/icons/Stop.png")
+        startIcon = QIcon(START_ICON_LOC)
+        stopIcon = QIcon(STOP_ICON_LOC)
         self.StartButton.setIcon(startIcon)
         self.StopButton = QPushButton("Stop")
         self.__setFont(self.StopButton, CONTROL_BUTTON_FONT_SIZE)
@@ -131,12 +134,18 @@ class MainWindow(QMainWindow):
         self.StartButton.clicked.connect(self.__handleStart)
         self.StopButton.clicked.connect(self.__handleStop)
         
-        currentSelectionLayout = QHBoxLayout()
-        currentSelectionLayout.addWidget(self.__currentPatternLabel)
-        currentSelectionLayout.addStretch(1)
-        currentSelectionLayout.addWidget(self.__currentStatusLabel)
-        currentSelectionLayout.addWidget(self.StartButton)
-        currentSelectionLayout.addWidget(self.StopButton)
+        # put on the first row of the left coloumn, first two of the right column
+        controlLayout = QHBoxLayout()
+        
+        leftHandColumn = QVBoxLayout()
+        rightHandColumn = QVBoxLayout()
+        leftHandColumn.addWidget(self.__currentPatternLabel)
+        
+        rightHandColumn.addWidget(self.__currentStatusLabel)
+        startStopLayout = QHBoxLayout()
+        startStopLayout.addWidget(self.StartButton)
+        startStopLayout.addWidget(self.StopButton)
+        rightHandColumn.addLayout(startStopLayout)
         
         ## Make Intensity Layout
         self.__intensityLabel = QLabel(INTENSITY_PREAMBLE + str(self.__currentIntensity))
@@ -144,15 +153,32 @@ class MainWindow(QMainWindow):
         self.__intensityButton = QPushButton("Set Intensity...")
         self.__setFont(self.__intensityButton, CONTROL_BUTTON_FONT_SIZE)
         self.__intensityButton.setMinimumSize(CONTROL_BUTTON_WIDTH*2, CONTROL_BUTTON_HEIGHT)
+        self.__intensityButton.setMaximumSize(CONTROL_BUTTON_WIDTH*2, CONTROL_BUTTON_HEIGHT)
         self.__intensityButton.clicked.connect(self.__intensityButtonClicked)
-        intensityLayout = QHBoxLayout()
+        intensityIcon = QIcon(INTENSITY_ICON_LOC)
+        self.__intensityButton.setIcon(intensityIcon)
+        
+        intensityLayout = QVBoxLayout()
         intensityLayout.addWidget(self.__intensityLabel)
-        intensityLayout.addStretch(1)
         intensityLayout.addWidget(self.__intensityButton)
 
-        infoBarLayout = QVBoxLayout()
-        infoBarLayout.addLayout(currentSelectionLayout)
-        infoBarLayout.addLayout(intensityLayout)
+        # add intensity layout to left hand column
+        leftHandColumn.addLayout(intensityLayout)
+        
+        # Add shutdown button
+        self.ShutdownButton = QPushButton("Shutdown")
+        self.__setFont(self.ShutdownButton, CONTROL_BUTTON_FONT_SIZE)
+        self.ShutdownButton.setMinimumSize(160, CONTROL_BUTTON_HEIGHT)
+        shutdownIcon = QIcon(SHUTDOWN_ICON_LOC)
+        self.ShutdownButton.setIcon(shutdownIcon)
+        self.ShutdownButton.clicked.connect(self.__shutdown)
+        
+        rightHandColumn.addWidget(self.ShutdownButton)
+        
+        infoBarLayout = QHBoxLayout()
+        infoBarLayout.addLayout(leftHandColumn)
+        infoBarLayout.addStretch(1)
+        infoBarLayout.addLayout(rightHandColumn)
         
         return infoBarLayout
         
@@ -461,10 +487,12 @@ class MainWindow(QMainWindow):
         self.close()
         
     def __shutdown(self):
-        self.__handleStop()
-        if RASPI:
-            os.system("sudo shutdown -h 0")
-        self.close()
+        response = QMessageBox.question(self, "Shutdown", "Proceed with shutdown?", QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+        if response == QMessageBox.Yes:
+            self.__handleStop()
+            if RASPI:
+                os.system("sudo shutdown -h 0")
+            self.close()
         
     ### DISABLED-----------------------------------------------------
     def __addPattern(self):
@@ -708,6 +736,7 @@ class MainWindow(QMainWindow):
         for i in range(0,numOfColors-1):        ## -1 excludes the Empty
             button = TagPushButton(self,Colors[i])
             self.__setFont(button, PATTERN_BUTTON_FONT_SIZE)
+            button.setIcon(self.ColorIcons[i])
             self.__colorButtonChooserLayout.addWidget(button)
         
         self.__drawPatternSettings(self.__selectedPattern, True)            
@@ -847,9 +876,3 @@ class MainWindow(QMainWindow):
             if lastRowStretch and i == numOfRows-1:
                 newRow.addStretch(1)
             self.__presetButtonLayout.addLayout(newRow)
-            
-        
-        
-        
-        
-        

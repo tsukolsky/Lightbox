@@ -12,12 +12,24 @@ TIMER_ENABLED = False
 MAX_NUM_PRESETS = 16
 
 ### Path Settings ------------------------------------
-currentFile = inspect.getfile(inspect.currentframe())
-currentPath = currentFile.split('/util/Settings.py')[0]
-PRESET_FILE = currentPath + "/saved_presets.txt"
-START_ICON_LOC  = currentPath + "/icons/Start.png"
-STOP_ICON_LOC   = currentPath + "/icons/Stop.png"
-print "Current path is %s. Preset file is %s, Start Icon/Stop icon are %s, %s"%(currentPath, PRESET_FILE, START_ICON_LOC, STOP_ICON_LOC)
+currentFile         = inspect.getfile(inspect.currentframe())
+currentPath         = currentFile.split('/util/Settings.py')[0]
+
+PRESET_FILE         = currentPath + "/saved_presets.txt"
+START_ICON_LOC      = currentPath + "/icons/Start.png"
+STOP_ICON_LOC       = currentPath + "/icons/Stop.png"
+SHUTDOWN_ICON_LOC   = currentPath + "/icons/Shutdown.png"
+INTENSITY_ICON_LOC  = currentPath + "/icons/Intensity.png"
+
+BLUE_ICON_LOC       = currentPath + "/icons/Blue.png" 
+RED_ICON_LOC        = currentPath + "/icons/Red.png"
+REDOR_ICON_LOC      = currentPath + "/icons/RedOrange.png"
+CYAN_ICON_LOC       = currentPath + "/icons/Cyan.png"
+GREEN_ICON_LOC      = currentPath + "/icons/Green.png"
+WHITE_ICON_LOC      = currentPath + "/icons/White.png"
+YELLOW_ICON_LOC     = currentPath + "/icons/Yellow.png"
+
+#print "Current path is %s. Preset file is %s, Start Icon/Stop icon are %s, %s"%(currentPath, PRESET_FILE, START_ICON_LOC, STOP_ICON_LOC)
 
 ### Pi-GPIO Dictionary and WiringPi GPIO Corresponding value ---------------------------
 GpioDict = dict()
@@ -66,19 +78,6 @@ PatternDict["Calibration"] = 13
 ## Intensity Calibration/Intensity Data
 #####################################################################
 Intensities = [80,100,200,400,800,1000,1600,2000,3200,4000]
-
-## Default percentages
-defaultIntensityDict = dict()
-defaultIntensityDict[80]   = 18
-defaultIntensityDict[100]  = 20
-defaultIntensityDict[200]  = 25
-defaultIntensityDict[400]  = 35
-defaultIntensityDict[800]  = 45
-defaultIntensityDict[1000] = 62
-defaultIntensityDict[1600] = 70
-defaultIntensityDict[2000] = 75
-defaultIntensityDict[3200] = 90
-defaultIntensityDict[4000] = 95
 
 ## Individual Color Readings
 redIntensityData = dict()
@@ -293,6 +292,7 @@ pattern_eleven.append(tmpDict)
 pattern_eleven.append(12)
 DEFAULT_PATTERNS.append(pattern_eleven)
 
+"""
 pattern_calibration = list()
 pattern_calibration.append("Calibration")
 pattern_calibration.append("350ms/1650ms")
@@ -304,5 +304,6 @@ tmpDict[0] = [(.350, 1.650)]
 pattern_calibration.append(tmpDict)
 pattern_calibration.append(13)
 DEFAULT_PATTERNS.append(pattern_calibration)
+"""
 
 NUM_DEFAULT_PATTERNS = len(DEFAULT_PATTERNS)
