@@ -17,11 +17,11 @@ class Log():
 		timestamp = time.time()
 		callTime = datetime.datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
 		logMessage = "%s:   %s:   %s"%(callTime, callingClass, message)
-		of = open(self.__logFile,'a')
-		of.write(logMessage)
-		of.close()
 		if self.__terminalPrint:
 			print logMessage
+			of = open(self.__logFile,'a')
+			of.write(logMessage)
+			of.close()
 		
 	def GetLogPath(self):
 		return self.__logFile
