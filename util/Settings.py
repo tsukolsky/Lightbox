@@ -322,6 +322,8 @@ pattern_seven.append([ColorsByIndex[Colors.Empty], ColorsByIndex[Colors.Empty]])
 pattern_seven.append(2)
 tmpDict = dict()
 tmpDict[0] = [(1.0, 0)]
+tmpDict[1] = [(1.0, 0)]
+pattern_seven.append(tmpDict)
 pattern_seven.append(8)
 DEFAULT_PATTERNS.append(pattern_seven)
 
@@ -333,6 +335,7 @@ pattern_eight.append([ColorsByIndex[Colors.Empty], ColorsByIndex[Colors.Empty]])
 pattern_eight.append(2)
 tmpDict = dict()
 tmpDict[0] = [(1.0, 0)]
+tmpDict[1] = [(1.0, 0)]
 pattern_eight.append(tmpDict)
 pattern_eight.append(9)
 DEFAULT_PATTERNS.append(pattern_eight)
@@ -345,6 +348,7 @@ pattern_nine.append([ColorsByIndex[Colors.Empty], ColorsByIndex[Colors.Empty]])
 pattern_nine.append(2)
 tmpDict = dict()
 tmpDict[0] = [(1.0, 0)]
+tmpDict[1] = [(1.0, 0)]
 pattern_nine.append(tmpDict)
 pattern_nine.append(10)
 DEFAULT_PATTERNS.append(pattern_nine)
@@ -357,6 +361,7 @@ pattern_ten.append([ColorsByIndex[Colors.Empty],ColorsByIndex[Colors.Empty]])
 pattern_ten.append(2)
 tmpDict = dict()
 tmpDict[0] = [(1.0, 0)]
+tmpDict[1] = [(1.0, 0)]
 pattern_ten.append(tmpDict)
 pattern_ten.append(11)
 DEFAULT_PATTERNS.append(pattern_ten)
