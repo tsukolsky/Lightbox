@@ -295,21 +295,39 @@ int main(int argc, char* argv[])
 				colorTwo, intensityTwo, pwm::chirpup_cTwo, sizeof(pwm::chirpup_cTwo)/sizeof(unsigned int), \
 				colorThree, intensityThree, pwm::chirpup_cThree, sizeof(pwm::chirpup_cThree)/sizeof(unsigned int));
 		break;
+
+	/*
 	case HZ2_50:
 		show_single_color_pattern(colorOne, intensityOne, pwm::hz_2_50, sizeof(pwm::hz_2_50)/sizeof(unsigned int));
 		break;
 	case HZ2_25:
 		show_single_color_pattern(colorOne, intensityOne, pwm::hz_2_25, sizeof(pwm::hz_2_25)/sizeof(unsigned int));
 		break;
-	case HZ2_25_INT:
-		cout << "2Hz, 25% Interrupt Duty." << endl;
-		show_dual_color_pattern(colorOne, intensityOne, pwm::hz_2_25_int_cOne, sizeof(pwm::hz_2_25_int_cOne)/sizeof(unsigned int), \
-				colorTwo, intensityTwo, pwm::hz_2_25_int_cTwo, sizeof(pwm::hz_2_25_int_cTwo)/sizeof(unsigned int));
-		break;
 	case HZ2_50_ALT:
 		cout << "2Hz, 50% Duty." << endl;
 		show_dual_color_pattern(colorOne, intensityOne, pwm::hz_2_50, sizeof(pwm::hz_2_50)/sizeof(unsigned int), \
 				colorTwo, intensityTwo, pwm::hz_2_50, sizeof(pwm::hz_2_50)/sizeof(unsigned int));
+		break;
+		*/
+	case HZ4_10_DUT:
+		cout << "4Hz, 10% Iterrupt Duty." << endl;
+		show_dual_color_pattern(colorOne, intensityOne, pwm::hz_4_10_dut_cOne, sizeof(pwm::hz_4_10_dut_cOne)/sizeof(unsigned int), \
+				colorTwo, intensityTwo, pwm::hz_4_10_dut_cTwo, sizeof(pwm::hz_4_10_dut_cTwo)/sizeof(unsigned int));
+		break;
+	case HZ4_20_DUT:
+		cout << "4Hz, 20% Iterrupt Duty." << endl;
+		show_dual_color_pattern(colorOne, intensityOne, pwm::hz_4_20_dut_cOne, sizeof(pwm::hz_4_20_dut_cOne)/sizeof(unsigned int), \
+				colorTwo, intensityTwo, pwm::hz_4_20_dut_cTwo, sizeof(pwm::hz_4_20_dut_cTwo)/sizeof(unsigned int));
+		break;
+	case HZ4_30_DUT:
+		cout << "4Hz, 30% Iterrupt Duty." << endl;
+		show_dual_color_pattern(colorOne, intensityOne, pwm::hz_4_30_dut_cOne, sizeof(pwm::hz_4_30_dut_cOne)/sizeof(unsigned int), \
+				colorTwo, intensityTwo, pwm::hz_4_30_dut_cTwo, sizeof(pwm::hz_4_30_dut_cTwo)/sizeof(unsigned int));
+		break;
+	case HZ2_25_INT:
+		cout << "2Hz, 25% Interrupt Duty." << endl;
+		show_dual_color_pattern(colorOne, intensityOne, pwm::hz_2_25_int_cOne, sizeof(pwm::hz_2_25_int_cOne)/sizeof(unsigned int), \
+				colorTwo, intensityTwo, pwm::hz_2_25_int_cTwo, sizeof(pwm::hz_2_25_int_cTwo)/sizeof(unsigned int));
 		break;
 	case FIXED:
 		cout << "Fixed" << endl;

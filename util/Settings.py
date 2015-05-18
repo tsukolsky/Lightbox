@@ -68,16 +68,25 @@ PatternDict["6Hz"] = 4
 PatternDict["SOS A1-MOD"] = 5
 PatternDict["Chirp-Up-Mod"] = 6
 PatternDict["Chirp-Up-Mod, 3-Color"] = 7
-PatternDict["2Hz 25% Duty"] = 8
-PatternDict["2Hz 50% Duty"] = 9
-PatternDict["2Hz Group/Alt"] = 10
-PatternDict["2Hz 2-Color"] = 11
+PatternDict["4Hz 10% Duty"] = 8
+PatternDict["4Hz 20% Duty"] = 9
+PatternDict["4Hz 30% Duty"] = 10
+PatternDict["2Hz Group/Alt"] = 11
 PatternDict["Fixed"] = 12
 PatternDict["Calibration"] = 13
+
+'''
+# These patterns have been DEPRECATED for Release1505. They have been replaced with 4Hz 10/20/30% Duty Interrupt Signals
+PatternDict["2Hz 25% Duty"] = 8
+PatternDict["2Hz 50% Duty"] = 9
+PatternDict["2Hz 2-Color"] = 11
+'''
 
 
 #####################################################################
 ## Intensity Calibration/Intensity Data
+## NOTE* These have been CALIBRATED! DO NOT CHANGE THE NUMBERS UNLESS
+## YOU KNOW WHAT YOU ARE DOING!!!
 #####################################################################
 Intensities = [80,100,200,400,800,1000,1600,2000,3200,4000]
 
@@ -201,7 +210,7 @@ DEFAULT_PATTERNS = list()
 
 pattern_zero = list()
 pattern_zero.append("4Hz")
-pattern_zero.append("Continuous 4Hz")
+pattern_zero.append("Continuous 4Hz 50% Duty")
 pattern_zero.append(True)
 pattern_zero.append([ColorsByIndex[Colors.Empty]])
 pattern_zero.append(1)
@@ -306,6 +315,65 @@ pattern_six.append(7)
 DEFAULT_PATTERNS.append(pattern_six)
 
 pattern_seven = list()
+pattern_seven.append("4Hz 10% Duty")
+pattern_seven.append("4Hz Interrupt, 10% Duty, 4-3 Alt")
+pattern_seven.append(True)
+pattern_seven.append([ColorsByIndex[Colors.Empty], ColorsByIndex[Colors.Empty]])
+pattern_seven.append(2)
+tmpDict = dict()
+pattern_seven.append(8)
+DEFAULT_PATTERNS.append(pattern_seven)
+
+pattern_eight = list()
+pattern_eight.append("4Hz 20% Duty")
+pattern_eight.append("4Hz Continuous, 20% Duty, 4-3 Alt")
+pattern_eight.append(True)
+pattern_eight.append([ColorsByIndex[Colors.Empty], ColorsByIndex[Colors.Empty]])
+pattern_eight.append(2)
+tmpDict = dict()
+pattern_eight.append(tmpDict)
+pattern_eight.append(9)
+DEFAULT_PATTERNS.append(pattern_eight)
+
+pattern_nine = list()
+pattern_nine.append("4Hz 30% Duty")
+pattern_nine.append("4Hz Continuous, 30% Duty, 4-3 Alt")
+pattern_nine.append(True)
+pattern_nine.append([ColorsByIndex[Colors.Empty], ColorsByIndex[Colors.Empty]])
+pattern_nine.append(2)
+tmpDict = dict()
+pattern_nine.append(tmpDict)
+pattern_nine.append(10)
+DEFAULT_PATTERNS.append(pattern_nine)
+
+pattern_ten = list()
+pattern_ten.append("2Hz Group/Alt")
+pattern_ten.append("2-Color, 2Hz 25% duty cycle, 4-3 Alt")
+pattern_ten.append(True)
+pattern_ten.append([ColorsByIndex[Colors.Empty],ColorsByIndex[Colors.Empty]])
+pattern_ten.append(2)
+tmpDict = dict()
+pattern_ten.append(tmpDict)
+pattern_ten.append(11)
+DEFAULT_PATTERNS.append(pattern_ten)
+
+
+pattern_eleven = list()
+pattern_eleven.append("Fixed")
+pattern_eleven.append("Continuous Signal")
+pattern_eleven.append(True)
+pattern_eleven.append([ColorsByIndex[Colors.Empty]])
+pattern_eleven.append(1)
+tmpDict = dict()
+tmpDict[0] = [(1.0, 0)]
+pattern_eleven.append(tmpDict)
+pattern_eleven.append(12)
+DEFAULT_PATTERNS.append(pattern_eleven)
+
+'''
+THESE PATTERNS ARE NOW DEPRECATED
+
+pattern_seven = list()
 pattern_seven.append("2Hz 25% Duty")
 pattern_seven.append("2Hz Continuous, 25% Duty")
 pattern_seven.append(True)
@@ -329,18 +397,7 @@ pattern_eight.append(tmpDict)
 pattern_eight.append(9)
 DEFAULT_PATTERNS.append(pattern_eight)
 
-pattern_nine = list()
-pattern_nine.append("2Hz Group/Alt")
-pattern_nine.append("2-Color, 2Hz 25% duty cycle, 4-3 Alt")
-pattern_nine.append(True)
-pattern_nine.append([ColorsByIndex[Colors.Empty],ColorsByIndex[Colors.Empty]])
-pattern_nine.append(2)
-tmpDict = dict()
-tmpDict[0] = [(.125, .375), (.125, .375), (.125, .375), (.125, .250)]
-tmpDict[1] = [(.125, .375), (.125, .375), (.125, .250)]
-pattern_nine.append(tmpDict)
-pattern_nine.append(10)
-DEFAULT_PATTERNS.append(pattern_nine)
+
 
 pattern_ten = list()
 pattern_ten.append("2Hz 2-Color")
@@ -354,20 +411,9 @@ tmpDict[1] = tmpDict[0]
 pattern_ten.append(tmpDict)
 pattern_ten.append(11)
 DEFAULT_PATTERNS.append(pattern_ten)
+'''
 
-pattern_eleven = list()
-pattern_eleven.append("Fixed")
-pattern_eleven.append("Continuous Signal")
-pattern_eleven.append(True)
-pattern_eleven.append([ColorsByIndex[Colors.Empty]])
-pattern_eleven.append(1)
-tmpDict = dict()
-tmpDict[0] = [(1.0, 0)]
-pattern_eleven.append(tmpDict)
-pattern_eleven.append(12)
-DEFAULT_PATTERNS.append(pattern_eleven)
-
-"""
+'''
 pattern_calibration = list()
 pattern_calibration.append("Calibration")
 pattern_calibration.append("350ms/1650ms")
@@ -379,6 +425,6 @@ tmpDict[0] = [(.350, 1.650)]
 pattern_calibration.append(tmpDict)
 pattern_calibration.append(13)
 DEFAULT_PATTERNS.append(pattern_calibration)
-"""
+'''
 
 NUM_DEFAULT_PATTERNS = len(DEFAULT_PATTERNS)

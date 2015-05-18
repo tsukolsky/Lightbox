@@ -2,7 +2,7 @@ import os, sys, time, datetime
 import inspect
 
 class Log():
-	def __init__(self, terminalPrint = False):
+	def __init__(self, terminalPrint = True):
 		fileLoc = inspect.stack()[0][1]
 		withoutUtil = fileLoc.split("util")
 		timestamp = time.time()
